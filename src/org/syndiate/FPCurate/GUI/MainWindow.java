@@ -5,6 +5,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 
 import javax.swing.*;
+
+import org.syndiate.FPCurate.GUI.preferences.SettingsWindow;
+
 import java.io.File;
 
 
@@ -59,6 +62,7 @@ public class MainWindow {
 		frmAPCurator.setTitle("AutoFPCurator");
 		frmAPCurator.setBounds(100, 100, 1280, 720);
 		frmAPCurator.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frmAPCurator.setLocationRelativeTo(null);
 		
 		
 		
@@ -86,7 +90,7 @@ public class MainWindow {
 		
 		JMenuItem preferences = new JMenuItem("Preferences");
 		preferences.addActionListener((ActionEvent e) -> {
-			new Preferences();
+			new SettingsWindow();
 		});
 		fileMenu.add(preferences);
 		
