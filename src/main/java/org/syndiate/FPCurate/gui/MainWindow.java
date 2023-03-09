@@ -1,4 +1,4 @@
-package org.syndiate.FPCurate.GUI;
+package org.syndiate.FPCurate.gui;
 
 
 import java.awt.*;
@@ -6,9 +6,9 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.*;
 
-import org.syndiate.FPCurate.GUI.preferences.SettingsWindow;
-
+import org.syndiate.FPCurate.gui.SettingsWindow;
 import java.io.File;
+
 
 
 public class MainWindow {
@@ -79,6 +79,8 @@ public class MainWindow {
 		openItem.addActionListener((ActionEvent e) -> {
 			
 			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+			
 			int result = fileChooser.showOpenDialog(null);
 			if (result == JFileChooser.APPROVE_OPTION) {
 			    File selectedFile = fileChooser.getSelectedFile();
@@ -97,6 +99,15 @@ public class MainWindow {
 		
 		menuBar.add(fileMenu);
 		
+		JLabel label = new JLabel("Navigate to File > Open and select a file/directory to begin.\nSelect a file (SWF or ZIP) if you would to curate a game."
+				+ "\nSelect a directory if you would like AutoFPCurator to iterate through every Flash game in the folder."
+				+ "\n\nNOTICE:"
+				+ "\nThis tool is only designed FOR SINGLE ASSET GAMES that work in the Flash projector in a standard HTML embed.");
+        label.setFont(label.getFont().deriveFont(14.0f)); // set font size to 64
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.add(label, new GridBagConstraints());
+
+        frmAPCurator.add(panel, BorderLayout.CENTER);
 		
 		
 	}
