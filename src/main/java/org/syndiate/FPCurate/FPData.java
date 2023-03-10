@@ -7,6 +7,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 
+import org.syndiate.FPCurate.gui.common.ErrorDialog;
+
 public class FPData {
 	
 	private static final String fpDataDomain = "https://flashpoint-search.unstable.life";
@@ -17,6 +19,10 @@ public class FPData {
 	
 	
 	public static String getSearchData(String title) {
+		
+		if (title == null) {
+			return "";
+		}
 		
 		String searchData = "";
 		
@@ -29,7 +35,7 @@ public class FPData {
 	        connection.setRequestProperty("Content-Type", "application/json");
 	        connection.setDoOutput(true);
 
-	        String jsonInputString = "by=Best+match&q=" + title.replaceAll(" ", "+");
+	        String jsonInputString = "q=" + title.replaceAll(" ", "+") + "&by=Best+match";
 
 	        
 	        try (OutputStream os = connection.getOutputStream()) {
@@ -39,16 +45,16 @@ public class FPData {
 	        int responseCode = connection.getResponseCode();
 	        
 	        if (responseCode != 200) {
-	        	throw new Exception("Failed to retrieve search data. Is the flashpoint-search.unstable.life down?");
+	        	throw new Exception("Failed to retrieve search data. Is flashpoint-search.unstable.life down?");
 	        }
 	        		
 	        
 	        BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"));
 	        
-	        
+	        String currentLine = "";
 	        StringBuilder responseLine = new StringBuilder();
 	        
-	        while (br.readLine() != null) {
+	        while ((currentLine = br.readLine()) != null) {
 	            responseLine.append(br.readLine().trim());
 	        }
 	        
@@ -67,7 +73,13 @@ public class FPData {
 	
 	
 	
+	
+	
 	public static String getCurationData(String UUID) {
+		
+		if (UUID == null) {
+			return "";
+		}
 		
 		String curationData = "";
 		
@@ -90,6 +102,7 @@ public class FPData {
 			 curationData = inputLine.toString();
 			
 		} catch (Exception e) {
+			new ErrorDialog(e);
 			System.out.println("Unable to retrieve curation data.");
 			return "";
 		}

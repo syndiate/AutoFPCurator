@@ -4,13 +4,10 @@ import java.awt.event.ItemEvent;
 import java.util.Map;
 
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import org.syndiate.FPCurate.I18N;
 import org.syndiate.FPCurate.SettingsManager;
 import org.syndiate.FPCurate.gui.SettingsWindow;
 
@@ -28,15 +25,24 @@ public class SettingsGUI {
 		textField.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
             public void insertUpdate(DocumentEvent e) {
+				if (SettingsManager.getSetting(settingsId).equals(textField.getText())) {
+					return;
+				}
                 SettingsWindow.queueSetting(settingsId, textField.getText());
             }
             @Override
             public void removeUpdate(DocumentEvent e) {
-            	SettingsWindow.queueSetting(settingsId, textField.getText());
+            	if (SettingsManager.getSetting(settingsId).equals(textField.getText())) {
+					return;
+				}
+                SettingsWindow.queueSetting(settingsId, textField.getText());
             }
             @Override
             public void changedUpdate(DocumentEvent e) {
-            	SettingsWindow.queueSetting(settingsId,  textField.getText());
+            	if (SettingsManager.getSetting(settingsId).equals(textField.getText())) {
+					return;
+				}
+                SettingsWindow.queueSetting(settingsId, textField.getText());
             }
 		});
 		

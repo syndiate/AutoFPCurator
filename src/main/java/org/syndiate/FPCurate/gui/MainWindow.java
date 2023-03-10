@@ -99,11 +99,13 @@ public class MainWindow {
 		
 		menuBar.add(fileMenu);
 		
-		JLabel label = new JLabel("Navigate to File > Open and select a file/directory to begin.\nSelect a file (SWF or ZIP) if you would to curate a game."
-				+ "\nSelect a directory if you would like AutoFPCurator to iterate through every Flash game in the folder."
-				+ "\n\nNOTICE:"
-				+ "\nThis tool is only designed FOR SINGLE ASSET GAMES that work in the Flash projector in a standard HTML embed.");
-        label.setFont(label.getFont().deriveFont(14.0f)); // set font size to 64
+		JLabel label = new JLabel("<html>Navigate to File > Open and select a file/directory to begin. "
+				+ "Select a file (SWF or ZIP) if you would to curate a game."
+				+ "Select a directory if you would like AutoFPCurator to"
+				+ "<br> iterate through every Flash game in the folder."
+				+ "<br><br><b>NOTICE:</b>"
+				+ "<br>This tool is only designed FOR SINGLE ASSET GAMES that work in the Flash projector OR in a standard HTML embed. Otherwise, please use Flashpoint Core.");
+        label.setFont(label.getFont().deriveFont(16.0f)); // set font size to 64
         JPanel panel = new JPanel(new GridBagLayout());
         panel.add(label, new GridBagConstraints());
 

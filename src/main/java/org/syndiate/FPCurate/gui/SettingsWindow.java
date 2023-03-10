@@ -88,6 +88,11 @@ public class SettingsWindow extends JFrame {
 
 		JButton cancelButton = new JButton("Cancel");
 		cancelButton.setActionCommand("Cancel");
+		cancelButton.addActionListener((ActionEvent) -> {
+			if (SettingsWindow.queuedSettings.size() > 0) {
+				
+			}
+		});
 		buttonPane.add(cancelButton);
 		
 

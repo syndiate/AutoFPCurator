@@ -4,15 +4,24 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Map;
+
+import org.syndiate.FPCurate.gui.common.ErrorDialog;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 public class CommonMethods {
 	
 	public static String getResource(String filePath) {
 		
 		InputStream is = I18N.class.getClassLoader().getResourceAsStream(filePath);
+		if (is == null) {
+			return null;
+		}
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
 		
-		String currentLine;
+		String currentLine = "";
 		StringBuilder resourceContents = new StringBuilder("");
 		
 		try {
@@ -25,6 +34,23 @@ public class CommonMethods {
 		}
 
 		return resourceContents.toString();
+		
+	}
+	
+	
+	
+	public static Object parseJSONStr(String json) {
+		
+		Object jsonObj;
+		
+		try {
+			jsonObj = new Gson().fromJson(json, Object.class);
+		} catch (JsonSyntaxException e) {
+			new ErrorDialog(e);
+			return null;
+		}
+		
+		return jsonObj;
 		
 	}
 
