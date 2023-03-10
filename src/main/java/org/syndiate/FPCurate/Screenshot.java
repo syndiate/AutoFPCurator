@@ -27,11 +27,7 @@ public class Screenshot {
 	    
 	  }
 	  
-	  if (window != null) {
-	      return window;
-	  } else {
-	      return null;
-	  }
+	  return window;
 	
   }
 	

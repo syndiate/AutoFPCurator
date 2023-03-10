@@ -32,7 +32,7 @@ public class FPData {
 			URL url = new URL(FPData.searchDataEndpoint);
 	        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 	        connection.setRequestMethod("POST");
-	        connection.setRequestProperty("Content-Type", "application/json");
+	        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 	        connection.setDoOutput(true);
 
 	        String jsonInputString = "q=" + title.replaceAll(" ", "+") + "&by=Best+match";
@@ -55,7 +55,7 @@ public class FPData {
 	        StringBuilder responseLine = new StringBuilder();
 	        
 	        while ((currentLine = br.readLine()) != null) {
-	            responseLine.append(br.readLine().trim());
+	            responseLine.append(currentLine.trim());
 	        }
 	        
 	        searchData = responseLine.toString();
@@ -85,17 +85,18 @@ public class FPData {
 		
 		try {
 			
-			URL curation = new URL(FPData.curationDataEndpoint);
+			URL curation = new URL(FPData.curationDataEndpoint + "?id=" + UUID);
 			URLConnection curationConn = curation.openConnection();
         
 			BufferedReader in = new BufferedReader(
                                 	new InputStreamReader(
                                 			curationConn.getInputStream()));
         
+			String currentLine = "";
 			StringBuilder inputLine = new StringBuilder("");
 
-			while (in.readLine() != null) 
-				inputLine.append(in.readLine());
+			while ((currentLine = in.readLine()) != null) 
+				inputLine.append(currentLine);
             
 			in.close();
 			
