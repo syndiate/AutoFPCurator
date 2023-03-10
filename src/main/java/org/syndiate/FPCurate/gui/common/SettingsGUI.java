@@ -50,9 +50,11 @@ public class SettingsGUI {
 		
 	}
 	
-	public static JComboBox<String> createDropdown(String settingsId, Map<String, String> dropdownItems) {
+	
+	
+	public static JComboBox<String> createDropdown(String settingsId, String[] dropdownItems) {
 		
-		JComboBox<String> dropdown = new JComboBox<>();
+		JComboBox<String> dropdown = new JComboBox<>(dropdownItems);
 		
 		dropdown.addItemListener((ItemEvent e) -> {
 			SettingsWindow.queueSetting(settingsId,  dropdown.getSelectedItem().toString());

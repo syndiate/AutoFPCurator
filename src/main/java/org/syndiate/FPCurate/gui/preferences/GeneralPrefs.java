@@ -23,9 +23,13 @@ public class GeneralPrefs extends JPanel {
 		
 		this.setLayout(new GridLayout(2, 2));
 		
+		this.add(new JLabel(generalMenuStrs.get("languageDropdown")));
+		this.add(SettingsGUI.createDropdown("globalLanguage", generalMenuStrs.get("languageDropdownItems").split(",")));
 //		this.add(new JLabel(generalMenuStrs.get("languageDropdown")));
 //		this.add(SettingsGUI.createDropdown("globalLanguage", )
 	}
+	
+	
 	
 	
 	

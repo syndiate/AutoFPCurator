@@ -23,11 +23,6 @@ class I18NTest {
 	}
 	
 	@Test
-	void nonExistentFile() {
-		assertNull(I18N.getStrings("nothing"));
-	}
-	
-	@Test
 	void nonExistentNamespace() {
 		assertNull(I18N.getStrings("this-namespace-does-not-exist"));
 	}

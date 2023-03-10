@@ -3,10 +3,13 @@ package org.syndiate.FPCurate.gui;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 import javax.swing.*;
 
 import org.syndiate.FPCurate.gui.SettingsWindow;
+import org.syndiate.FPCurate.gui.common.CommonGUI;
+
 import java.io.File;
 
 
@@ -88,19 +91,23 @@ public class MainWindow {
 			}
 			
 		});
+		CommonGUI.setMenuItemShortcut(openItem, KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK);
 		fileMenu.add(openItem);
+		
+		
 		
 		JMenuItem preferences = new JMenuItem("Preferences");
 		preferences.addActionListener((ActionEvent e) -> {
 			new SettingsWindow();
 		});
+		CommonGUI.setMenuItemShortcut(preferences, KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK);
 		fileMenu.add(preferences);
 		
 		
 		menuBar.add(fileMenu);
 		
 		JLabel label = new JLabel("<html>Navigate to File > Open and select a file/directory to begin. "
-				+ "Select a file (SWF or ZIP) if you would to curate a game."
+				+ "Select a file (SWF or ZIP) if you would to curate a game. "
 				+ "Select a directory if you would like AutoFPCurator to"
 				+ "<br> iterate through every Flash game in the folder."
 				+ "<br><br><b>NOTICE:</b>"
@@ -113,5 +120,16 @@ public class MainWindow {
 		
 		
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 }

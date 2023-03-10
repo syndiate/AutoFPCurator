@@ -7,7 +7,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 
-import org.syndiate.FPCurate.gui.common.ErrorDialog;
+import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 
 public class FPData {
 	

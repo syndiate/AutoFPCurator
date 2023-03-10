@@ -1,12 +1,16 @@
-package org.syndiate.FPCurate.gui.common;
+package org.syndiate.FPCurate.gui.common.dialog;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
+import javax.swing.border.Border;
 
 public class ConfirmDialog extends JDialog {
 
@@ -14,7 +18,6 @@ public class ConfirmDialog extends JDialog {
 	 * 
 	 */
 	private static final long serialVersionUID = -6942330187588902749L;
-	private final JPanel contentPanel = new JPanel();
 
 	/**
 	 * Launch the application.
@@ -34,16 +37,23 @@ public class ConfirmDialog extends JDialog {
 	 */
 	public ConfirmDialog(String confirmationMsg) {
 		
+		setTitle("Confirmation");
 		setBounds(100, 100, 450, 300);
 		getContentPane().setLayout(new BorderLayout());
-		contentPanel.setLayout(new FlowLayout());
-		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		
+		JLabel label = new JLabel(confirmationMsg);
+		label.setAlignmentX(Component.CENTER_ALIGNMENT);
+		label.setAlignmentY(Component.CENTER_ALIGNMENT);
+
+		getContentPane().add(label, BorderLayout.CENTER);
+
 		
 		JPanel buttonPane = new JPanel();
-		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		getContentPane().add(buttonPane, BorderLayout.SOUTH);
+		FlowLayout fl_buttonPane = new FlowLayout(FlowLayout.CENTER);
+		buttonPane.setLayout(fl_buttonPane);
+		getContentPane().add(buttonPane);
+		
+		
 			
 		JButton okButton = new JButton("OK");
 		okButton.setActionCommand("OK");
@@ -54,6 +64,9 @@ public class ConfirmDialog extends JDialog {
 		JButton cancelButton = new JButton("Cancel");
 		cancelButton.setActionCommand("Cancel");
 		buttonPane.add(cancelButton);
+		
+		
+		this.setVisible(true);
 		
 	}
 
