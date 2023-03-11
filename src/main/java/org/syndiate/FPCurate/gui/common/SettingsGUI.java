@@ -1,6 +1,8 @@
 package org.syndiate.FPCurate.gui.common;
 
 import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.ArrayList;
 import java.util.Map;
 
 import javax.swing.JComboBox;
@@ -52,13 +54,16 @@ public class SettingsGUI {
 	
 	
 	
-	public static JComboBox<String> createDropdown(String settingsId, String[] dropdownItems) {
+	public static JComboBox<String> createDropdown(String[] dropdownItems, String selectedItem, ItemListener listener) {
 		
 		JComboBox<String> dropdown = new JComboBox<>(dropdownItems);
-		
-		dropdown.addItemListener((ItemEvent e) -> {
-			SettingsWindow.queueSetting(settingsId,  dropdown.getSelectedItem().toString());
-		});
+		dropdown.setSelectedItem(selectedItem);
+		dropdown.addItemListener(listener);
+		/*
+		 * dropdown.addItemListener((ItemEvent e) -> {
+		 * SettingsWindow.queueSetting(settingsId,
+		 * dropdown.getSelectedItem().toString()); });
+		 */
 		
 		return dropdown;
 		

@@ -3,6 +3,9 @@ package org.syndiate.FPCurate.gui.common.dialog;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 
+import org.syndiate.FPCurate.gui.common.CommonGUI;
+
+
 public class ConfirmDialog extends JDialog {
 
 	/**
@@ -14,19 +17,23 @@ public class ConfirmDialog extends JDialog {
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
-		try {
-			ConfirmDialog dialog = new ConfirmDialog("Sample dialog");
-			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			dialog.setVisible(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+			
+		new ConfirmDialog("Sample dialog", new ConfirmationListener() {
+			public void onConfirm(JDialog dialog) {
+				CommonGUI.closeDialog(dialog);
+			}
+			public void onCancel(JDialog dialog) {
+				CommonGUI.closeDialog(dialog);
+			}
+		});
+		
 	}
 
 	/**
 	 * Create the dialog.
 	 */
-	public ConfirmDialog(String confirmationMsg) {
+	public ConfirmDialog(String confirmationMsg, ConfirmationListener listener) {
+		
 		int confirmationResult = JOptionPane.showConfirmDialog(
 			    null,
 			    confirmationMsg,
@@ -34,14 +41,19 @@ public class ConfirmDialog extends JDialog {
 			    JOptionPane.OK_CANCEL_OPTION
 			);
 		
+		this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		this.setVisible(true);
 		
 		if (confirmationResult == JOptionPane.OK_OPTION) {
-		    // Handle "OK" button click
+		    listener.onConfirm(this);
 		} else {
-		    // Handle "Cancel" button click
+		    listener.onCancel(this);
 		}
-		
-		this.setVisible(true);
+	}
+	
+
+	public void closeDialog() {
+		this.dispose();
 	}
 
 }

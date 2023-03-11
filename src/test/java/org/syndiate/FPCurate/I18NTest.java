@@ -12,6 +12,12 @@ class I18NTest {
 	}
 	
 	@Test
+	void languageTest() {
+		assertInstanceOf(String.class, I18N.getLanguage());
+		System.out.println(I18N.getLanguage());
+	}
+	
+	@Test
 	void nonExistentStr() {
 		assertNull(I18N.getStrings("test").get("this_does_not_exist"));
 	}

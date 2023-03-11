@@ -1,5 +1,6 @@
 package org.syndiate.FPCurate.gui.common;
 
+import javax.swing.JDialog;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
@@ -10,6 +11,11 @@ public class CommonGUI {
 		component.setMnemonic(specificKey);
 		component.setDisplayedMnemonicIndex(0);
         component.setAccelerator(KeyStroke.getKeyStroke(specificKey, keyMask));
+	}
+	
+	
+	public static void closeDialog(JDialog dialog) {
+		dialog.dispose();
 	}
 
 
