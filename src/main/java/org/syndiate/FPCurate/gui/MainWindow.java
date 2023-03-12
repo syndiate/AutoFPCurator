@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -23,6 +24,8 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.syndiate.FPCurate.I18N;
+import org.syndiate.FPCurate.SettingsManager;
 import org.syndiate.FPCurate.gui.common.CommonGUI;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 
@@ -58,7 +61,7 @@ public class MainWindow {
 	 * @throws ClassNotFoundException 
 	 * @wbp.parser.entryPoint
 	 */
-	public MainWindow() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
+	public MainWindow() {
 		initialize();
 	}
 
@@ -69,9 +72,13 @@ public class MainWindow {
 	 * @throws InstantiationException 
 	 * @throws ClassNotFoundException 
 	 */
-	private void initialize() throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
+	private void initialize() {
 		
-		UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+		try {
+			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+		} catch (Exception e) {
+			new ErrorDialog(new Exception("Could not load Windows look and feel", e));
+		}
 		
 		
 		
@@ -103,7 +110,6 @@ public class MainWindow {
 			int result = fileChooser.showOpenDialog(null);
 			if (result == JFileChooser.APPROVE_OPTION) {
 			    File selectedFile = fileChooser.getSelectedFile();
-			    // Code to open the selected file goes here
 			}
 			
 		});
@@ -122,13 +128,14 @@ public class MainWindow {
 		
 		menuBar.add(fileMenu);
 		
-		JLabel label = new JLabel("<html>Navigate to File > Open and select a file/directory to begin. "
-				+ "Select a file (SWF or ZIP) if you would to curate a game. "
-				+ "Select a directory if you would like AutoFPCurator to"
-				+ "<br> iterate through every Flash game in the folder."
-				+ "<br><br><b>NOTICE:</b>"
-				+ "<br>This tool is only designed FOR SINGLE ASSET GAMES that work in the Flash projector OR in a standard HTML embed. Otherwise, please use Flashpoint Core.");
-        label.setFont(label.getFont().deriveFont(16.0f)); // set font size to 64
+		Map<String, String> messageStrs = I18N.getStrings("main/message");
+		
+		JLabel label = new JLabel("<html>" + messageStrs.get("instructions")
+				+ "<br>" + messageStrs.get("iterateThrough")
+				+ "<br><br><b>" + messageStrs.get("noticeHeader") + "</b>"
+				+ "<br>" + messageStrs.get("notice"));
+		
+        label.setFont(label.getFont().deriveFont(14.0f));
         JPanel panel = new JPanel(new GridBagLayout());
         panel.add(label, new GridBagConstraints());
 
@@ -141,7 +148,7 @@ public class MainWindow {
 	
 	
 	// https://dzone.com/articles/programmatically-restart-java
-	public static void restartApplication(Runnable runBeforeRestart) throws IOException {
+	public static void restartApplication(Runnable runBeforeRestart) {
 		
 		try {
 			// java binary
@@ -193,9 +200,7 @@ public class MainWindow {
 			// exit
 			System.exit(0);
 		} catch (Exception e) {
-			// something went wrong
-//			throw new IOException("Error while trying to restart the application", e);
-			new ErrorDialog(e);
+			new ErrorDialog(new Exception("Error while trying to restart the application", e));
 		}
 	}
 	

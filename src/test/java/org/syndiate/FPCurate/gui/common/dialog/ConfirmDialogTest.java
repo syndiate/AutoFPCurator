@@ -25,10 +25,7 @@ class ConfirmDialogTest {
 	
 	@Test
 	void nullMsg() {
-		new ConfirmDialog(null, new ConfirmationListener() {
-			public void onConfirm(JDialog dialog) {}
-			public void onCancel(JDialog dialog) {}
-		});
+		new ConfirmDialog(null, null);
 	}
 
 }

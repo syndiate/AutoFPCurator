@@ -1,0 +1,6 @@
+{ 
+	"instructions": "Navigate to File > Open and select a file/directory to begin. Select a file (SWF or ZIP) if you would like to curate a game. Select a directory if you would like AutoFPCurator to",
+	"iterateThrough": " iterate through every Flash game in the folder.",
+	"noticeHeader": "NOTICE:",
+	"notice": "This tool is only designed FOR SINGLE ASSET GAMES that work in the Flash projector OR in a standard HTML embed. Otherwise, please use Flashpoint Core."
+}

@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,14 +15,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 
 import org.syndiate.FPCurate.I18N;
 import org.syndiate.FPCurate.SettingsManager;
 import org.syndiate.FPCurate.gui.common.CommonGUI;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmDialog;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmationListener;
-import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 import org.syndiate.FPCurate.gui.preferences.GeneralPrefs;
 import org.syndiate.FPCurate.gui.preferences.Paths;
 
@@ -36,7 +33,6 @@ public class SettingsWindow extends JFrame {
 	private static Map<String, String> queuedSettings = new HashMap<>();
 	private static final ArrayList<String> restartSettings = new ArrayList<>() {
 		private static final long serialVersionUID = -8849154866086921003L;
-
 		{
 			add("globalLanguage");
 		};
@@ -121,14 +117,14 @@ public class SettingsWindow extends JFrame {
 		SettingsWindow.queuedSettings.put(key, value);
 	}
 	
+	
+	
 	public static void saveSettings() {
 		
 		boolean restart = false;
 		
-		for (Map.Entry<String, String> entry: SettingsWindow.queuedSettings.entrySet()) {
-			if (SettingsWindow.restartSettings.contains(entry.getValue())) {
-				restart = true;
-			}
+		for (Map.Entry<String, String> entry : SettingsWindow.queuedSettings.entrySet()) {
+			if (SettingsWindow.restartSettings.contains(entry.getKey())) restart = true;
 			SettingsManager.saveSetting(entry.getKey(), entry.getValue());
 		}
 		
@@ -140,12 +136,8 @@ public class SettingsWindow extends JFrame {
 		new ConfirmDialog("A restart is required for full changes to take effect. Restart now?", new ConfirmationListener() {
 			
 			public void onConfirm(JDialog dialog) {
-				try {
-					MainWindow.restartApplication(null);
-				} catch (IOException e) {
-					new ErrorDialog(new IOException("Failed to restart application", e));
-				}
 				CommonGUI.closeDialog(dialog);
+				MainWindow.restartApplication(null);
 			}
 			
 			public void onCancel(JDialog dialog) {

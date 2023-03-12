@@ -1,0 +1,6 @@
+{ 
+	"instructions": "Va a Archivo > Abrir y seleccionas un archivo/directorio para comenzar. Seleccionas un archivo (SWF o ZIP) si quieres curar un partido. Seleccionas un directori si quieres AutoFPCurator",
+	"iterateThrough": " itera a travès de cada juego Flash en la directorio.",
+	"noticeHeader": "NOTICIA:",
+	"notice": "Esta herramienta solo está diseñada PARA LOS PARTIDOS ACTIVO UNICO que trabajan en la proyector Flash O en un incrustación de HTML estándar. De lo contrario, utilice Flashpoint Core por favor."
+}

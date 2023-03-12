@@ -34,6 +34,15 @@ public class ConfirmDialog extends JDialog {
 	 */
 	public ConfirmDialog(String confirmationMsg, ConfirmationListener listener) {
 		
+		if (confirmationMsg == null) {
+			new ErrorDialog(new NullPointerException("Confirmation message is null"));
+			return;
+		}
+		if (listener == null) {
+			new ErrorDialog(new NullPointerException("Confirmation listener is null"));
+			return;
+		}
+		
 		int confirmationResult = JOptionPane.showConfirmDialog(
 			    null,
 			    confirmationMsg,

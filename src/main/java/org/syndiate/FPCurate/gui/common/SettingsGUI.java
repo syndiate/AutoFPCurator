@@ -1,9 +1,6 @@
 package org.syndiate.FPCurate.gui.common;
 
-import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.ArrayList;
-import java.util.Map;
 
 import javax.swing.JComboBox;
 import javax.swing.JTextField;
