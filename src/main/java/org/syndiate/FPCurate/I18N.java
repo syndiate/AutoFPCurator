@@ -19,6 +19,9 @@ public class I18N {
 	public static String getLanguage() {
 		return SettingsManager.getSetting("globalLanguage");
 	}
+	public static void setLanguage(String isoLanguage) {
+		SettingsManager.saveSetting("globalLanguage", "isoLanguage");
+	}
 	
 	
 	

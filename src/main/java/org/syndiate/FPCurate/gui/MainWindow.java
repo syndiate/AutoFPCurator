@@ -25,9 +25,9 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import org.syndiate.FPCurate.I18N;
-import org.syndiate.FPCurate.SettingsManager;
 import org.syndiate.FPCurate.gui.common.CommonGUI;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
+import org.syndiate.FPCurate.gui.main.*;
 
 
 
@@ -98,10 +98,13 @@ public class MainWindow {
 		frmAPCurator.setJMenuBar(menuBar);
 		
 		
-
-		JMenu fileMenu = new JMenu("File");
+		Map<String, String> menuBarStrings = I18N.getStrings("main/menu_bar");
+		Map<String, String> menuItemStrings = I18N.getStrings("main/menu_bar/popups");
 		
-		JMenuItem openItem = new JMenuItem("Open");
+
+		JMenu fileMenu = new JMenu(menuBarStrings.get("file"));
+		
+		JMenuItem openItem = new JMenuItem(menuItemStrings.get("open"));
 		openItem.addActionListener((ActionEvent e) -> {
 			
 			JFileChooser fileChooser = new JFileChooser();
@@ -110,6 +113,10 @@ public class MainWindow {
 			int result = fileChooser.showOpenDialog(null);
 			if (result == JFileChooser.APPROVE_OPTION) {
 			    File selectedFile = fileChooser.getSelectedFile();
+			    
+			    if (selectedFile.isFile()) {
+			    	new FileCurationView();
+			    }
 			}
 			
 		});
@@ -118,7 +125,7 @@ public class MainWindow {
 		
 		
 		
-		JMenuItem preferences = new JMenuItem("Preferences");
+		JMenuItem preferences = new JMenuItem(menuItemStrings.get("preferences"));
 		preferences.addActionListener((ActionEvent e) -> {
 			new SettingsWindow();
 		});
@@ -143,6 +150,8 @@ public class MainWindow {
 		
 		
 	}
+	
+	
 	
 	
 	
