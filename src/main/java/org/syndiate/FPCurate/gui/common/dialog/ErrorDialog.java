@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -13,6 +14,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+
+import org.syndiate.FPCurate.I18N;
 
 public class ErrorDialog extends JDialog {
 
@@ -43,8 +46,10 @@ public class ErrorDialog extends JDialog {
 		  if (ex == null) {
 			  return;
 		  }
+		  
+		  Map<String, String> dialogStrs = I18N.getStrings("dialog");
 		
-		  setTitle("An error occurred!"); 
+		  setTitle(dialogStrs.get("errorTitle")); 
 		  setSize(450, 400);
 		  setLocationRelativeTo(null); 
 		  setBounds(100, 100, 450, 300);
@@ -76,7 +81,7 @@ public class ErrorDialog extends JDialog {
 		  scrollPane.setBounds(10, 8, 414, 179); 
 		  contentPanel.add(scrollPane);
 		  
-		  JButton okButton = new JButton("OK"); okButton.setBounds(194, 198, 63, 23);
+		  JButton okButton = new JButton(dialogStrs.get("okButton")); okButton.setBounds(194, 198, 63, 23);
 		  contentPanel.add(okButton);
 		  okButton.addActionListener((ActionEvent e) -> dispose());
 		  getRootPane().setDefaultButton(okButton);

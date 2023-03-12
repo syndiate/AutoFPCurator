@@ -1,8 +1,11 @@
 package org.syndiate.FPCurate.gui.common.dialog;
 
+import java.util.Map;
+
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 
+import org.syndiate.FPCurate.I18N;
 import org.syndiate.FPCurate.gui.common.CommonGUI;
 
 
@@ -34,6 +37,8 @@ public class ConfirmDialog extends JDialog {
 	 */
 	public ConfirmDialog(String confirmationMsg, ConfirmationListener listener) {
 		
+		Map<String, String> dialogStrs = I18N.getStrings("dialog");
+		
 		if (confirmationMsg == null) {
 			new ErrorDialog(new NullPointerException("Confirmation message is null"));
 			return;
@@ -46,7 +51,7 @@ public class ConfirmDialog extends JDialog {
 		int confirmationResult = JOptionPane.showConfirmDialog(
 			    null,
 			    confirmationMsg,
-			    "Confirmation",
+			    dialogStrs.get("confirmationTitle"),
 			    JOptionPane.OK_CANCEL_OPTION
 			);
 		

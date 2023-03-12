@@ -7,6 +7,7 @@ import java.util.Map;
 public class I18N {
 	
 	
+	
 	@SuppressWarnings("unchecked")
 	public static Map<String, String> getStrings(String namespaceDir) {
 		
@@ -22,7 +23,6 @@ public class I18N {
 	public static void setLanguage(String isoLanguage) {
 		SettingsManager.saveSetting("globalLanguage", "isoLanguage");
 	}
-	
 	
 	
 	

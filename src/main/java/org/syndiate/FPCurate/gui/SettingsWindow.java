@@ -97,7 +97,7 @@ public class SettingsWindow extends JFrame {
 		getRootPane().setDefaultButton(okButton);
 
 
-		JButton cancelButton = new JButton("Cancel");
+		JButton cancelButton = new JButton(I18N.getStrings("dialog").get("cancelButton"));
 		cancelButton.setActionCommand("Cancel");
 		cancelButton.addActionListener((ActionEvent) -> {
 			if (SettingsWindow.queuedSettings.size() > 0) {
@@ -133,7 +133,7 @@ public class SettingsWindow extends JFrame {
 			return;
 		}
 			
-		new ConfirmDialog("A restart is required for full changes to take effect. Restart now?", new ConfirmationListener() {
+		new ConfirmDialog(I18N.getStrings("settings").get("restartDialog"), new ConfirmationListener() {
 			
 			public void onConfirm(JDialog dialog) {
 				CommonGUI.closeDialog(dialog);
