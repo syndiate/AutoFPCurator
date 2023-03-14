@@ -22,11 +22,9 @@ public class ConfirmDialog extends JDialog {
 	public static void main(String[] args) {
 			
 		new ConfirmDialog("Sample dialog", new ConfirmationListener() {
-			public void onConfirm(JDialog dialog) {
-				CommonGUI.closeDialog(dialog);
+			public void onConfirm() {
 			}
-			public void onCancel(JDialog dialog) {
-				CommonGUI.closeDialog(dialog);
+			public void onCancel() {
 			}
 		});
 		
@@ -59,9 +57,11 @@ public class ConfirmDialog extends JDialog {
 		this.setVisible(true);
 		
 		if (confirmationResult == JOptionPane.OK_OPTION) {
-		    listener.onConfirm(this);
+			CommonGUI.closeDialog(this);
+		    listener.onConfirm();
 		} else {
-		    listener.onCancel(this);
+			CommonGUI.closeDialog(this);
+		    listener.onCancel();
 		}
 	}
 	

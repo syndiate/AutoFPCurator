@@ -73,8 +73,10 @@ public class ErrorDialog extends JDialog {
 		  }
 		  
 		  JTextArea stackTrace = new JTextArea(sb.toString());
-		  stackTrace.setEditable(false); stackTrace.setLineWrap(true);
-		  stackTrace.setWrapStyleWord(true); stackTrace.setText(sb.toString());
+		  stackTrace.setEditable(false); 
+		  stackTrace.setLineWrap(true);
+		  stackTrace.setWrapStyleWord(true); 
+		  stackTrace.setText(sb.toString());
 		  
 		  
 		  JScrollPane scrollPane = new JScrollPane(stackTrace);

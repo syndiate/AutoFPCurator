@@ -1,0 +1,5 @@
+{ 
+	"restartConfirmation": "Are you sure you want to restart? (All unsaved changes will be lost.)",
+	"exitConfirmation": "Are you sure you want to exit? (All unsaved changes will be lost.)",
+	"unsavedChanges": "You have some unsaved changes. "
+}

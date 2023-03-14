@@ -1,6 +1,7 @@
 { 
 	"confirmationTitle": "Confirmation",
 	"errorTitle": "An error occurred!",
+	"genericTitle": "Message",
 	"okButton": "OK",
 	"cancelButton": "Cancel"
 }

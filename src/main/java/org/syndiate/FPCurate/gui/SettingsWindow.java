@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -18,7 +17,6 @@ import javax.swing.JTextField;
 
 import org.syndiate.FPCurate.I18N;
 import org.syndiate.FPCurate.SettingsManager;
-import org.syndiate.FPCurate.gui.common.CommonGUI;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmDialog;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmationListener;
 import org.syndiate.FPCurate.gui.preferences.GeneralPrefs;
@@ -41,12 +39,14 @@ public class SettingsWindow extends JFrame {
 
 	public SettingsWindow() {
 		
+		SettingsWindow.queuedSettings.clear();
+		
 		Map<String, String> settingsMenuStrs = I18N.getStrings("settings");
 		
         this.setTitle(settingsMenuStrs.get("windowTitle"));
         this.setSize(960, 540);
         this.setLocationRelativeTo(null);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setFocusable(false);
@@ -85,9 +85,9 @@ public class SettingsWindow extends JFrame {
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
+		Map<String, String> dialogMsgStrs = I18N.getStrings("dialog/messages");
 
-
-		JButton okButton = new JButton("OK");
+		JButton okButton = new JButton(I18N.getStrings("dialog").get("okButton"));
 		okButton.setActionCommand("OK");
 		okButton.addActionListener((ActionEvent e) -> {
 			SettingsWindow.saveSettings();
@@ -97,12 +97,25 @@ public class SettingsWindow extends JFrame {
 		getRootPane().setDefaultButton(okButton);
 
 
+		
+		
 		JButton cancelButton = new JButton(I18N.getStrings("dialog").get("cancelButton"));
 		cancelButton.setActionCommand("Cancel");
-		cancelButton.addActionListener((ActionEvent) -> {
+		cancelButton.addActionListener((ActionEvent e) -> {
+			
 			if (SettingsWindow.queuedSettings.size() > 0) {
 				
+				new ConfirmDialog(dialogMsgStrs.get("unsavedChanges") + dialogMsgStrs.get("exitConfirmation"), new ConfirmationListener() {
+					public void onConfirm() {
+						SettingsWindow.this.dispose();
+					}
+					public void onCancel() {}
+				});
+				
+			} else {
+				dispose();
 			}
+			
 		});
 		buttonPane.add(cancelButton);
 		
@@ -113,7 +126,13 @@ public class SettingsWindow extends JFrame {
 	
 	
 	
+	
+	
 	public static void queueSetting(String key, String value) {
+		if (SettingsManager.getSetting(key).equals(value)) {
+			SettingsWindow.queuedSettings.remove(key);
+			return;
+		}
 		SettingsWindow.queuedSettings.put(key, value);
 	}
 	
@@ -132,17 +151,11 @@ public class SettingsWindow extends JFrame {
 		if (!restart) {
 			return;
 		}
-			
 		new ConfirmDialog(I18N.getStrings("settings").get("restartDialog"), new ConfirmationListener() {
-			
-			public void onConfirm(JDialog dialog) {
-				CommonGUI.closeDialog(dialog);
+			public void onConfirm() {
 				MainWindow.restartApplication(null);
 			}
-			
-			public void onCancel(JDialog dialog) {
-				CommonGUI.closeDialog(dialog);
-			}
+			public void onCancel() {}
 			
 		});
 	}

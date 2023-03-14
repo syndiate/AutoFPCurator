@@ -24,23 +24,14 @@ public class SettingsGUI {
 		textField.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
             public void insertUpdate(DocumentEvent e) {
-				if (SettingsManager.getSetting(settingsId).equals(textField.getText())) {
-					return;
-				}
                 SettingsWindow.queueSetting(settingsId, textField.getText());
             }
             @Override
             public void removeUpdate(DocumentEvent e) {
-            	if (SettingsManager.getSetting(settingsId).equals(textField.getText())) {
-					return;
-				}
                 SettingsWindow.queueSetting(settingsId, textField.getText());
             }
             @Override
             public void changedUpdate(DocumentEvent e) {
-            	if (SettingsManager.getSetting(settingsId).equals(textField.getText())) {
-					return;
-				}
                 SettingsWindow.queueSetting(settingsId, textField.getText());
             }
 		});

@@ -1,6 +1,7 @@
 package org.syndiate.FPCurate;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -52,6 +53,19 @@ public class CommonMethods {
 		}
 		
 		return jsonObj;
+		
+	}
+	
+	
+	public static String getFileExtension(File file) {
+		
+		String fileName = file.getName();
+		int lastDotIndex = fileName.lastIndexOf('.');
+		if (lastDotIndex <= 0) return "";
+		
+
+		String fileExtension = fileName.substring(lastDotIndex + 1);
+		return fileExtension;
 		
 	}
 	

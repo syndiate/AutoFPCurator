@@ -6,28 +6,20 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 import org.syndiate.FPCurate.I18N;
-import org.syndiate.FPCurate.gui.common.CommonGUI;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
-import org.syndiate.FPCurate.gui.main.*;
+import org.syndiate.FPCurate.gui.main.MainGUI;
 
 
 
@@ -35,6 +27,7 @@ public class MainWindow {
 
 	private JFrame frmAPCurator;
 	public static final String SUN_JAVA_COMMAND = "sun.java.command";
+	private static JPanel mainPanel;
 
 	/**
 	 * Launch the application.
@@ -43,35 +36,17 @@ public class MainWindow {
 		
 //		SettingsManager.saveSetting("globalLanguage", "en");
 		EventQueue.invokeLater(() -> {
-			try {
-				MainWindow window = new MainWindow();
-				window.frmAPCurator.setVisible(true);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			new MainWindow();
 		});
 		
 	}
 
-	/**
-	 * Create the application.
-	 * @throws UnsupportedLookAndFeelException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws ClassNotFoundException 
-	 * @wbp.parser.entryPoint
-	 */
+	
 	public MainWindow() {
 		initialize();
 	}
+	
 
-	/**
-	 * Initialize the contents of the frame.
-	 * @throws UnsupportedLookAndFeelException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws ClassNotFoundException 
-	 */
 	private void initialize() {
 		
 		try {
@@ -91,49 +66,10 @@ public class MainWindow {
 		frmAPCurator.setLocationRelativeTo(null);
 		
 		
-		
-		JMenuBar menuBar = new JMenuBar();
-		menuBar.setOpaque(true);
-		menuBar.setBackground(Color.WHITE);
-		frmAPCurator.setJMenuBar(menuBar);
-		
-		
-		Map<String, String> menuBarStrings = I18N.getStrings("main/menu_bar");
-		Map<String, String> menuItemStrings = I18N.getStrings("main/menu_bar/popups");
-		
-
-		JMenu fileMenu = new JMenu(menuBarStrings.get("file"));
-		
-		JMenuItem openItem = new JMenuItem(menuItemStrings.get("open"));
-		openItem.addActionListener((ActionEvent e) -> {
-			
-			JFileChooser fileChooser = new JFileChooser();
-			fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-			
-			int result = fileChooser.showOpenDialog(null);
-			if (result == JFileChooser.APPROVE_OPTION) {
-			    File selectedFile = fileChooser.getSelectedFile();
-			    
-			    if (selectedFile.isFile()) {
-			    	new FileCurationView();
-			    }
-			}
-			
-		});
-		CommonGUI.setMenuItemShortcut(openItem, KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK);
-		fileMenu.add(openItem);
+		frmAPCurator.setJMenuBar(MainGUI.initMenuBar());
 		
 		
 		
-		JMenuItem preferences = new JMenuItem(menuItemStrings.get("preferences"));
-		preferences.addActionListener((ActionEvent e) -> {
-			new SettingsWindow();
-		});
-		CommonGUI.setMenuItemShortcut(preferences, KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK);
-		fileMenu.add(preferences);
-		
-		
-		menuBar.add(fileMenu);
 		
 		Map<String, String> messageStrs = I18N.getStrings("main/message");
 		
@@ -143,13 +79,24 @@ public class MainWindow {
 				+ "<br>" + messageStrs.get("notice"));
 		
         label.setFont(label.getFont().deriveFont(14.0f));
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.add(label, new GridBagConstraints());
+        
+        
+        MainWindow.mainPanel = new JPanel(new GridBagLayout());
+        MainWindow.mainPanel.add(label, new GridBagConstraints());
 
-        frmAPCurator.add(panel, BorderLayout.CENTER);
-		
+        frmAPCurator.add(MainWindow.mainPanel, BorderLayout.CENTER);
+        frmAPCurator.setVisible(true);
 		
 	}
+	
+	public static void handleSWF(File swfFile) {
+		
+	}
+	public static void handleZippedCuration(File zippedCuration) {
+		
+	}
+	
+	
 	
 	
 	
@@ -206,8 +153,8 @@ public class MainWindow {
 			if (runBeforeRestart != null) {
 				runBeforeRestart.run();
 			}
-			// exit
 			System.exit(0);
+			
 		} catch (Exception e) {
 			new ErrorDialog(new Exception("Error while trying to restart the application", e));
 		}
