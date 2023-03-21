@@ -6,93 +6,207 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Toolkit;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingWorker;
 import javax.swing.UIManager;
+import javax.swing.event.ChangeEvent;
 
+import org.syndiate.FPCurate.Curation;
 import org.syndiate.FPCurate.I18N;
+import org.syndiate.FPCurate.SettingsManager;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
+import org.syndiate.FPCurate.gui.common.dialog.GenericDialog;
 import org.syndiate.FPCurate.gui.main.MainGUI;
 
 
 
 public class MainWindow {
 
-	private JFrame frmAPCurator;
+	private static JFrame frmAPCurator;
 	public static final String SUN_JAVA_COMMAND = "sun.java.command";
-	private static JPanel mainPanel;
+	public static JPanel mainPanel;
+	private static Curation mainCuration;
+	
+	
+	
 
 	/**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
-		
-//		SettingsManager.saveSetting("globalLanguage", "en");
 		EventQueue.invokeLater(() -> {
 			new MainWindow();
 		});
-		
 	}
 
 	
 	public MainWindow() {
-		initialize();
-	}
-	
 
-	private void initialize() {
-		
 		try {
 			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 		} catch (Exception e) {
 			new ErrorDialog(new Exception("Could not load Windows look and feel", e));
 		}
-		
-		
-		
+
 		frmAPCurator = new JFrame();
 		frmAPCurator.getContentPane().setBackground(new Color(255, 255, 255));
 		frmAPCurator.setBackground(new Color(255, 255, 255));
 		frmAPCurator.setTitle("AutoFPCurator");
-		frmAPCurator.setBounds(100, 100, 1280, 720);
+		frmAPCurator.setSize(1280, 720);
 		frmAPCurator.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmAPCurator.setLocationRelativeTo(null);
-		
-		
-		frmAPCurator.setJMenuBar(MainGUI.initMenuBar());
-		
-		
-		
-		
-		Map<String, String> messageStrs = I18N.getStrings("main/message");
-		
-		JLabel label = new JLabel("<html>" + messageStrs.get("instructions")
-				+ "<br>" + messageStrs.get("iterateThrough")
-				+ "<br><br><b>" + messageStrs.get("noticeHeader") + "</b>"
-				+ "<br>" + messageStrs.get("notice"));
-		
-        label.setFont(label.getFont().deriveFont(14.0f));
-        
-        
-        MainWindow.mainPanel = new JPanel(new GridBagLayout());
-        MainWindow.mainPanel.add(label, new GridBagConstraints());
 
-        frmAPCurator.add(MainWindow.mainPanel, BorderLayout.CENTER);
-        frmAPCurator.setVisible(true);
-		
+		frmAPCurator.setJMenuBar(MainGUI.initMenuBar());
+
+		Map<String, String> messageStrs = I18N.getStrings("main/message");
+
+		JLabel label = new JLabel(
+				"<html>" + messageStrs.get("instructions") + "<br>" + messageStrs.get("iterateThrough") + "<br><br><b>"
+						+ messageStrs.get("noticeHeader") + "</b>" + "<br>" + messageStrs.get("notice"));
+
+		label.setFont(label.getFont().deriveFont(14.0f));
+
+		MainWindow.mainPanel = new JPanel(new GridBagLayout());
+		MainWindow.mainPanel.add(label, new GridBagConstraints());
+
+		frmAPCurator.add(MainWindow.mainPanel, BorderLayout.CENTER);
+		frmAPCurator.setVisible(true);
+
 	}
+	
+	
+	
+	
+	
+	
 	
 	public static void handleSWF(File swfFile) {
 		
+		if (SettingsManager.getSetting("workingCurations").equals("") || SettingsManager.getSetting("zippedCurations").equals("")) {
+			new GenericDialog("Please specify what paths you would like AutoFPCurator to store working/zipped curations in in Settings > Paths.");
+			return;
+		}
+		
+		frmAPCurator.getContentPane().remove(MainWindow.mainPanel);
+		
+		mainPanel = new JPanel();
+		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+//		mainPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+	    mainPanel.setBackground(new Color(255, 255, 255));
+//	    mainPanel.add(new CustomConsole().getAreaWrapper(), BorderLayout.WEST);
+	    
+	    
+	    JTabbedPane tabbedPane = new JTabbedPane();
+	    
+	    
+        tabbedPane.setFocusable(false);
+        tabbedPane.setSize(Toolkit.getDefaultToolkit().getScreenSize());
+        
+        
+        tabbedPane.addTab("Main", new JScrollPane(mainPanel));
+        tabbedPane.addTab("Meta.yaml", new JPanel());
+        tabbedPane.addChangeListener((ChangeEvent e) -> {
+        	
+        	int index = tabbedPane.getSelectedIndex();
+        	JPanel panel = (JPanel) tabbedPane.getComponentAt(index);
+        	panel.removeAll();
+        	
+        	switch (index) {
+        		case 1:
+        			MainWindow.loadMetaPanel(panel);
+        			break;
+        	}
+        	
+        });
+        
+        
+        
+        
+        
+	    frmAPCurator.getContentPane().add(tabbedPane, BorderLayout.CENTER);
+
+	    frmAPCurator.revalidate();
+	    frmAPCurator.repaint();
+	    
+	    
+	    SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+		    @Override
+		    protected Void doInBackground() {
+		    	mainCuration = new Curation();
+		    	mainCuration.init(swfFile);
+		        return null;
+		    }
+
+		    @Override
+		    protected void done() {
+		    	try {
+					get();
+				} catch (InterruptedException | ExecutionException e) {
+					new ErrorDialog(e);
+				}
+		    }
+		};
+		worker.execute();
+	    
+	    
+	    
+		
 	}
 	public static void handleZippedCuration(File zippedCuration) {
+		
+	}
+	
+	
+	
+	
+	
+	private static void loadMetaPanel(JPanel panel) {
+
+        // add new components to the panel
+		panel.setLayout(new BorderLayout());
+		
+		JTextArea metaView = new JTextArea();
+		metaView.setEditable(true);
+		metaView.setLineWrap(true);
+		metaView.setWrapStyleWord(true);
+		
+
+		BufferedReader metaReader;
+		StringBuilder meta = new StringBuilder("");
+		String line;
+		
+		
+		try {
+			metaReader = new BufferedReader(new FileReader(mainCuration.getMetaYaml()));
+			while((line = metaReader.readLine()) != null) {
+				meta.append(line);
+			}
+		} catch (IOException e) {
+			meta.append("An error occurred when trying to read the meta.yaml file. Perhaps it was accidentally deleted?");
+		}
+
+		
+		metaView.setText(meta.toString());
+
+		panel.add(new JScrollPane(metaView), BorderLayout.CENTER);
+        panel.revalidate();
+        panel.repaint();
 		
 	}
 	
@@ -139,16 +253,13 @@ public class MainWindow {
 			}
 			// execute the command in a shutdown hook, to be sure that all the
 			// resources have been disposed before restarting the application
-			Runtime.getRuntime().addShutdownHook(new Thread() {
-				@Override
-				public void run() {
-					try {
-						Runtime.getRuntime().exec(cmd.toString());
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+				try {
+					Runtime.getRuntime().exec(cmd.toString());
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
-			});
+			}));
 			// execute some custom code before restarting
 			if (runBeforeRestart != null) {
 				runBeforeRestart.run();

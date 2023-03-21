@@ -1,33 +1,359 @@
 package org.syndiate.FPCurate;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Desktop;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Scanner;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
+import javax.imageio.ImageIO;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-
-import com.google.gson.JsonObject;
+import org.syndiate.FPCurate.gui.MainWindow;
+import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.Yaml;
 
 public class Curation {
 	
-	private static final String fpCurRoot = "C:/Users/syndi/Downloads/epic flashpoint games/Flashpoint Core 11/Curations/Working/";
+	
+	private File metaYAML;
+	private File curFolder;
+	private String curationId;
 	
 	
-	@SuppressWarnings("resource")
-	private static String input(String prompt) {
+	public Curation() {
 		
-		Scanner sc = new Scanner(System.in);
-		System.out.print(prompt);
+		this.curationId = UUID.randomUUID().toString();
 		
-		String input = sc.nextLine();
-		return input;
+		this.curFolder = new File(SettingsManager.getSetting("workingCurations") + "/" + curationId);
+		this.curFolder.mkdirs();
+		this.metaYAML = new File(curFolder + "/meta.yaml");
+		
+		
+		
 		
 	}
+	
+	
+	
+	
+	
+	
+	
+	public void init(File swfPath) {
+		
+//		System.out.println("test");
+		
+		
+		try {
+			metaYAML.createNewFile();
+		} catch (IOException ex) {
+			new ErrorDialog(new IOException("Cannot create meta.yaml file. Perhaps AutoFPCurator doesn't have sufficient permissions to access the directory?", ex));
+		}
+		
+		try {
+			Desktop.getDesktop().open(swfPath);
+		} catch (IOException e) {
+			new ErrorDialog(new IOException("Cannot open SWF file. You can manually open it here: " + swfPath, e));
+		}
+
+		
+		
+		
+		String launchCommand = input("Launch Command:");
+		if (!launchCommand.startsWith("http://") && !launchCommand.startsWith("https://")) {
+	        launchCommand = "http://" + launchCommand;
+	    }
+		try {
+	        new URL(launchCommand);
+	    } catch (MalformedURLException e) {
+	        System.out.println("Invalid launch command. Please fix in meta.yaml.");
+	    }
+		
+		
+		
+		
+		File lcDir = new File(this.curFolder + "/" + launchCommand.replaceAll("//|http|https|:|\\/\\/|/g", ""));
+		new File(lcDir.getParent()).mkdirs();
+		
+		
+		
+		try {
+			Files.move(Paths.get(swfPath.toURI()), Paths.get(lcDir.toURI()));
+		} catch (IOException e1) {
+			new ErrorDialog(new IOException("Failed to move the opened file. You must move it manually.", e1));
+		}
+		
+		
+		
+		
+		
+		writeMeta("Title", input("Title:"));
+		writeMeta("Alternate Titles", input("Alternate Titles:"));
+		
+		
+		String curType = input("Game or animation? (G/A)").toLowerCase();
+		switch (curType.toLowerCase()) {
+			case "arcade":
+			case "g":
+				writeMeta("Library", "arcade");
+				break;
+			case "theatre":
+			case "a":
+				writeMeta("Library", "theatre");
+				break;
+			default:
+				System.out.println("Invalid option entered. Defaulting to game.");
+				writeMeta("Library", "arcade");
+				break;
+		}
+		
+		
+		writeMeta("Series", input("Series:"));
+		writeMeta("Developer", input("Developer (separate with semicolons):"));
+		writeMeta("Publisher", input("Publisher (separate with semicolons):"));
+		
+		String playMode = input("Play mode (s - single player, c - cooperative, m - multiplayer):");
+		switch (playMode.toLowerCase()) {
+			case "single player":
+			case "s":
+				writeMeta("Play Mode", "Single Player");
+				break;
+			case "cooperative":
+			case "c":
+				writeMeta("Play Mode", "Cooperative");
+				break;
+			case "multiplayer":
+			case "m":
+				writeMeta("Play Mode", "Multiplayer");
+				break;
+			default:
+				System.out.println("Invalid option entered. Defaulting to single player.");
+				writeMeta("Play Mode", "Single Player");
+				break;
+		}
+		
+		
+		writeMeta("Release Date", input("Release Date:"));
+		writeMeta("Version", input("Version:"));
+		
+		
+		String langs = input("Languages (separate with semicolons:");
+		if (langs.equals("")) {
+			System.out.println("No languages entered. Defaulting to en.");
+			writeMeta("Languages", "en");
+		} else {
+			writeMeta("Languages", langs);
+		}
+		
+		
+		
+		String extreme = input("Extreme (Y/N):");
+		switch (extreme.toLowerCase()) {
+			case "yes":
+			case "y":
+				writeMeta("Extreme", "Yes");
+				break;
+			case "no":
+			case "n":
+				writeMeta("Extreme", "No");
+				break;
+			default:
+				System.out.println("Invalid option entered. Defaulting to no.");
+				writeMeta("Extreme", "No");
+				break;
+		}
+		
+		
+		
+		String tags = input("Tags (separate with semicolon):");
+		if (tags.equals("")) {
+			System.out.println("Warning: No tags entered. If this was a mistake, please fix it directly in the meta.yaml file.");
+		}
+		writeMeta("Tags", tags);
+		
+		
+		
+		String src = input("Source:");
+		if (src.equals("")) {
+			System.out.println("Warning: No source entered. If this was a mistake, please fix it directly in the meta.yaml file.");
+		}
+		writeMeta("Source", src);
+		writeMeta("Platform", "Flash");
+		
+		
+		
+		String status = input("Status (separate with semicolons, p - playable, pa - partial, h - hacked):").replaceAll("pa",  "Partial").replaceAll("h", "Hacked").replaceAll("p", "Playable");
+		if (status.equals("")) {
+			System.out.println("No status entered. Defaulting to playable.");
+			writeMeta("Status", "Playable");
+		} else {
+			writeMeta("Status", status);
+		}
+		writeMeta("Application Path", "FPSoftware\\Flash\\flashplayer_32_sa.exe");
+		writeMeta("Launch Command", launchCommand);
+		
+		
+		
+		
+		
+		
+		writeMeta("Game Notes", input("Game Notes:"));
+		writeMeta("Original Description", input("Original Description:"));
+		writeMeta("Curation Notes", "");
+		writeMeta("Mount Parameters", "");
+		writeMeta("Additional Applications", "{}");
+		
+		
+		String ssConfirm = input("Enter Yes/Y/[blank] to take a screenshot (PLEASE HAVE THE GAME OPEN!).");
+		BufferedImage ss = null;
+		switch (ssConfirm.toLowerCase()) {
+			case "yes":
+			case "y":
+			case "":
+				ss = Screenshot.takeScreenshot();
+				try {
+					ImageIO.write(ss, "png", new File(this.curFolder.getAbsolutePath() + "/ss.png"));
+				} catch (IOException e) {
+					new ErrorDialog(e);
+				}
+				break;
+			default:
+				
+		}
+		
+	}
+	
+	
+	
+
+	
+	
+	
+	
+	
+	
+	public void writeMeta(String key, String value) {
+		
+		try {
+			
+			Yaml yaml = new Yaml();
+			FileReader reader = new FileReader(this.metaYAML);
+			Map<String, String> meta = yaml.load(reader);
+			
+			
+			if (meta == null) {
+				meta = new HashMap<>();
+			}
+			if (value.equals("")) {
+				value = null;
+			}
+			meta.put(key, value);
+			
+
+			FileWriter writer = new FileWriter(this.metaYAML);
+			
+			DumperOptions options = new DumperOptions();
+	        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+	        options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
+	        
+			new Yaml(options).dump(meta, writer);
+
+			writer.close();
+			reader.close();
+			
+			
+		} catch (IOException e) {
+			new ErrorDialog(new IOException("Could not parse/write to the meta.yaml file.", e));
+		}
+		
+	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	private static String input(String prompt) {
+		
+		CompletableFuture<String> future = new CompletableFuture<>();
+
+		
+	    SwingUtilities.invokeLater(() -> {
+
+	        
+	    	JPanel row = new JPanel();
+	    	row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+	    	row.setBackground(new Color(255, 255, 255));
+	    	row.setAlignmentX(Component.LEFT_ALIGNMENT);
+	    	
+	    	
+	        JLabel label = new JLabel(prompt);
+	        label.setPreferredSize(new Dimension(100, 20));
+
+	        JTextField field = new JTextField();
+	        field.addActionListener((ActionEvent e) -> {
+	            future.complete(field.getText());
+	        });
+	        
+	        Dimension textFieldSize = new Dimension(235, 25);
+	        field.setMaximumSize(textFieldSize);
+	        field.setPreferredSize(textFieldSize);
+	        
+	        
+	        row.add(label);
+	        row.add(field);
+	        row.add(Box.createRigidArea(new Dimension(0, 10)));
+	        MainWindow.mainPanel.add(row);
+	        field.requestFocusInWindow();
+	        
+	        
+
+	        MainWindow.mainPanel.revalidate();
+	        MainWindow.mainPanel.repaint();
+	    });
+
+	    
+	    try {
+	        return future.get();
+	    } catch (InterruptedException | ExecutionException e) {
+	        new ErrorDialog(e);
+	    }
+	    
+
+	    return "";
+		
+	}
+	
+	
 	
 	
 	
@@ -120,20 +446,10 @@ public class Curation {
 	}
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-
-	
 	public static void closeCuration(String curationId, boolean endProgram) {
 		
 		try {
-			FileUtils.deleteDirectory(new File(fpCurRoot + curationId));
+			FileUtils.deleteDirectory(new File("fpCurRoot" + curationId));
 			Runtime.getRuntime().exec("taskkill /f /im flashplayer_32_sa.exe & taskkill /f /im cmd.exe");
 		} catch (IOException ex) {
 			System.out.println("An unknown error occurred.");
@@ -147,35 +463,6 @@ public class Curation {
 	}
 	
 	
-	public Curation(String swfPath) throws IOException {
-		
-		
-		String curationId = new File(fpCurRoot).list()[0];
-		
-		Desktop.getDesktop().open(new File(swfPath));
-		
-		JsonObject metadata = new JsonObject();
-		
-		String title = input("Title:").replaceAll(" ", "+");
-		
-		if (title == "CURATE_TERMINATE") {
-			closeCuration(curationId, true);
-		}
-		
-		metadata.addProperty("series", input("Series:"));
-		metadata.addProperty("alt", input("Alternate title:"));
-		metadata.addProperty("publisher", input("Publisher:"));
-		metadata.addProperty("dev", input("Developer:"));
-		metadata.addProperty("release", input("Release date:"));
-		metadata.addProperty("ver", input("Version:"));
-		metadata.addProperty("lang", input("Languages:"));
-		metadata.addProperty("tag", input("Tag(s):"));
-//		metadata.addProperty("tagcat", input("Tag Categories:"));
-		metadata.addProperty("desc", input("Description:"));
-		
-		
-		
-	}
 	
 	
 	/*
@@ -186,5 +473,12 @@ public class Curation {
 		
 		
 	}*/
+	
+	
+	
+	
+	public File getMetaYaml() {
+		return this.metaYAML;
+	}
 
 }

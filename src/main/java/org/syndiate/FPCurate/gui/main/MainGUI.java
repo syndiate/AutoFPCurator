@@ -4,17 +4,12 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.Map;
 
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 
 import org.syndiate.FPCurate.CommonMethods;
 import org.syndiate.FPCurate.I18N;
@@ -30,22 +25,25 @@ public class MainGUI {
 	
 	
 	
-
-	public static JScrollPane createConsoleOutput() {
+/*
+	public static Console createConsoleOutput(int width, int height) {
 
 		JTextArea consoleTextArea = new JTextArea();
-		consoleTextArea.setEditable(false);
+		consoleTextArea.setEditable(true);
 		consoleTextArea.setLineWrap(true);
 		consoleTextArea.setWrapStyleWord(true);
-		consoleTextArea.setBackground(Color.BLACK);
-		consoleTextArea.setForeground(Color.WHITE);
+		consoleTextArea.setBackground(Color.WHITE);
+		consoleTextArea.setForeground(Color.BLACK);
+		consoleTextArea.setSize(width, height);
 
 		JScrollPane scrollPane = new JScrollPane(consoleTextArea);
+		
 		System.setOut(new PrintStream(new ConsoleOutput(consoleTextArea)));
+		System.setIn(new ConsoleInput(consoleTextArea));
 
-		return scrollPane;
+		return new Console();
 
-	}
+	}*/
 	
 	
 	
@@ -95,19 +93,20 @@ public class MainGUI {
 				return;
 
 			File selectedFile = fileChooser.getSelectedFile();
+			
 
 			if (selectedFile.isFile()) {
 
 				String fileExtension = CommonMethods.getFileExtension(selectedFile);
 				switch (fileExtension) {
-				case "swf":
-					MainWindow.handleSWF(selectedFile);
-					break;
-				case "zip":
-					MainWindow.handleZippedCuration(selectedFile);
-					break;
-				default:
-					new GenericDialog("File must be of type SWF or ZIP.");
+					case "swf":
+						MainWindow.handleSWF(selectedFile);
+						break;
+					case "zip":
+						MainWindow.handleZippedCuration(selectedFile);
+						break;
+					default:
+						new GenericDialog("File must be of type SWF or ZIP.");
 				}
 				return;
 			}
@@ -173,6 +172,96 @@ public class MainGUI {
 
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+class ConsoleInput extends InputStream {
+	private JTextArea textArea;
+    private int next;
+
+    public ConsoleInput(JTextArea textArea) {
+        this.textArea = textArea;
+    }
+
+    @Override
+    public int read() throws IOException {
+        if (next < 0) {
+            return -1;
+        }
+        if (next == '\n') {
+            next = -1;
+            return '\r';
+        }
+        if (next == '\r') {
+            next = -1;
+            return '\n';
+        }
+        int result = next;
+        next = -1;
+        return result;
+    }
+
+    @Override
+    public int available() throws IOException {
+        return textArea.getDocument().getLength();
+    }
+
+    @Override
+    public synchronized void mark(int readlimit) {
+        // not supported
+    }
+
+    @Override
+    public synchronized void reset() throws IOException {
+        throw new IOException("mark/reset not supported");
+    }
+
+    @Override
+    public boolean markSupported() {
+        return false;
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+        if (b == null) {
+            throw new NullPointerException();
+        } else if (off < 0 || len < 0 || len > b.length - off) {
+            throw new IndexOutOfBoundsException();
+        } else if (len == 0) {
+            return 0;
+        }
+        if (next < 0) {
+            String text = textArea.getText();
+            if (text.length() == 0) {
+                return -1;
+            }
+            next = text.charAt(0);
+            textArea.replaceRange("", 0, 1);
+        }
+        b[off] = (byte) next;
+        return 1;
+    }
+}
+
+
+
+
+
+
+
 class ConsoleOutput extends OutputStream {
 
 	private JTextArea consoleTextArea;
@@ -185,4 +274,6 @@ class ConsoleOutput extends OutputStream {
 		consoleTextArea.append(String.valueOf((char) b));
 		consoleTextArea.setCaretPosition(consoleTextArea.getDocument().getLength());
 	}
-}
+}*/
+
+

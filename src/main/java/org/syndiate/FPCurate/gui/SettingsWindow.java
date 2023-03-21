@@ -103,20 +103,22 @@ public class SettingsWindow extends JFrame {
 		cancelButton.setActionCommand("Cancel");
 		cancelButton.addActionListener((ActionEvent e) -> {
 			
-			if (SettingsWindow.queuedSettings.size() > 0) {
+			if (SettingsWindow.queuedSettings.size() <= 0) {
+				dispose();
+				return;
+			}
 				
-				new ConfirmDialog(dialogMsgStrs.get("unsavedChanges") + dialogMsgStrs.get("exitConfirmation"), new ConfirmationListener() {
+			new ConfirmDialog(dialogMsgStrs.get("unsavedChanges") + dialogMsgStrs.get("exitConfirmation"),
+				new ConfirmationListener() {
 					public void onConfirm() {
 						SettingsWindow.this.dispose();
 					}
+
 					public void onCancel() {}
 				});
-				
-			} else {
-				dispose();
-			}
 			
 		});
+
 		buttonPane.add(cancelButton);
 		
 

@@ -1,2 +1,2 @@
-# AutoFlashpointCurate
-A tool to curate games for Flashpoint faster.
+# AutoFPCurator
+A tool to curate games for Flashpoint (https://bluemaxima.org/flashpoint/) faster.

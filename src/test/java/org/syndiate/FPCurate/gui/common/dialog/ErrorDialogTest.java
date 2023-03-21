@@ -1,8 +1,10 @@
 package org.syndiate.FPCurate.gui.common.dialog;
 
 import java.io.IOException;
+
 import org.junit.Before;
 import org.junit.jupiter.api.Test;
+
 import com.google.gson.stream.MalformedJsonException;
 
 
