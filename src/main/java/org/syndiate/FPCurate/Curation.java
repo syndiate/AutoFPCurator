@@ -7,12 +7,16 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +32,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
+import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.jsoup.Jsoup;
@@ -37,6 +43,9 @@ import org.syndiate.FPCurate.gui.MainWindow;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+
+
+
 
 public class Curation {
 	
@@ -247,7 +256,23 @@ public class Curation {
 				
 		}
 		
+		
+		input("Press enter to zip the curation.");
+		try {
+			zipCuration();
+		} catch (IOException e) {
+			new ErrorDialog(e);
+		}
+		
 	}
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -444,6 +469,70 @@ public class Curation {
 		}
 		
 	}
+	
+	
+	
+	
+	
+	
+	public void zipCuration() throws IOException {
+
+        String outputPath = SettingsManager.getSetting("zippedCurations") + "/" + curationId + ".7z";
+
+        XZCompressorOutputStream xzOutputStream = new XZCompressorOutputStream(new FileOutputStream(outputPath));
+        SevenZOutputFile sevenZOutput = new SevenZOutputFile(curFolder);
+
+        // get all the files and subdirectories in the folder
+        Path folder = Paths.get(curFolder.toString());
+        Files.walk(folder)
+                .filter(Files::isRegularFile)
+                .forEach(file -> {
+                    try {
+                        // create an input stream for the file
+                        FileInputStream inputStream = new FileInputStream(file.toFile());
+
+                        // add the file to the compressed archive
+                        String fileName = folder.relativize(file).toString();
+                        sevenZOutput.putArchiveEntry(sevenZOutput.createArchiveEntry(file.toFile(), fileName));
+                        byte[] buffer = new byte[8192];
+                        int len;
+                        while ((len = inputStream.read(buffer)) != -1) {
+                            xzOutputStream.write(buffer, 0, len);
+                        }
+                        sevenZOutput.closeArchiveEntry();
+
+                        // close the input stream
+                        inputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+        sevenZOutput.close();
+        xzOutputStream.close();
+        
+        /*
+        SevenZOutputFile sevenZOutput = new SevenZOutputFile(new File(outputPath));
+
+
+        File[] files = curFolder.listFiles();
+
+        for (File file : files) {
+        	
+        	FileInputStream inputStream = new FileInputStream(file);
+            String fileName = file.getName();
+            IOUtils.copy(inputStream, sevenZOutput.create);
+            sevenZOutput.putArchiveEntry(sevenZOutput.createArchiveEntry(file, fileName));
+            sevenZOutput.closeArchiveEntry();
+            
+        }
+
+        sevenZOutput.close();*/
+	}
+	
+	
+	
+	
+	
 	
 	
 	public static void closeCuration(String curationId, boolean endProgram) {

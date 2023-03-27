@@ -28,7 +28,7 @@ public class SettingsWindow extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 3875324643848537471L;
-	private static Map<String, String> queuedSettings = new HashMap<>();
+	private static final Map<String, String> queuedSettings = new HashMap<>();
 	private static final ArrayList<String> restartSettings = new ArrayList<>() {
 		private static final long serialVersionUID = -8849154866086921003L;
 		{
@@ -145,7 +145,9 @@ public class SettingsWindow extends JFrame {
 		boolean restart = false;
 		
 		for (Map.Entry<String, String> entry : SettingsWindow.queuedSettings.entrySet()) {
-			if (SettingsWindow.restartSettings.contains(entry.getKey())) restart = true;
+			if (SettingsWindow.restartSettings.contains(entry.getKey())) {
+				restart = true;
+			}
 			SettingsManager.saveSetting(entry.getKey(), entry.getValue());
 		}
 		
@@ -153,6 +155,7 @@ public class SettingsWindow extends JFrame {
 		if (!restart) {
 			return;
 		}
+		
 		new ConfirmDialog(I18N.getStrings("settings").get("restartDialog"), new ConfirmationListener() {
 			public void onConfirm() {
 				MainWindow.restartApplication(null);
