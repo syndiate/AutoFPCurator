@@ -5,6 +5,7 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,12 +30,9 @@ public class SettingsWindow extends JFrame {
 	 */
 	private static final long serialVersionUID = 3875324643848537471L;
 	private static final Map<String, String> queuedSettings = new HashMap<>();
-	private static final ArrayList<String> restartSettings = new ArrayList<>() {
-		private static final long serialVersionUID = -8849154866086921003L;
-		{
-			add("globalLanguage");
-		};
-	};
+	private static final ArrayList<String> restartSettings = new ArrayList<String>(Arrays.asList("globalLanguage"));
+	
+	
 	
 
 	public SettingsWindow() {
@@ -42,6 +40,9 @@ public class SettingsWindow extends JFrame {
 		SettingsWindow.queuedSettings.clear();
 		
 		Map<String, String> settingsMenuStrs = I18N.getStrings("settings");
+		Map<String, String> dialogStrs = I18N.getStrings("dialog");
+		Map<String, String> dialogMsgStrs = I18N.getStrings("dialog/messages");
+		
 		
         this.setTitle(settingsMenuStrs.get("windowTitle"));
         this.setSize(960, 540);
@@ -50,44 +51,39 @@ public class SettingsWindow extends JFrame {
 
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setFocusable(false);
+        
 
         JPanel generalPanel = new JPanel();
-        generalPanel.setLayout(new GridLayout(1, 1));
-        generalPanel.add(new JLabel("Setting 1:"));
-        generalPanel.add(new JTextField());
-        generalPanel.add(new JLabel("Setting 2:"));
-        generalPanel.add(new JTextField());
+		{
+			generalPanel.setLayout(new GridLayout(1, 1));
+			generalPanel.add(new JLabel("Setting 1:"));
+			generalPanel.add(new JTextField());
+			generalPanel.add(new JLabel("Setting 2:"));
+			generalPanel.add(new JTextField());
+		}
 
         JPanel advancedPanel = new JPanel();
-        advancedPanel.setLayout(new GridLayout(2, 2));
-        advancedPanel.add(new JLabel("Setting 3:"));
-        advancedPanel.add(new JTextField());
-        advancedPanel.add(new JLabel("Setting 4:"));
-        advancedPanel.add(new JTextField());
+		{
+			advancedPanel.setLayout(new GridLayout(2, 2));
+			advancedPanel.add(new JLabel("Setting 3:"));
+			advancedPanel.add(new JTextField());
+			advancedPanel.add(new JLabel("Setting 4:"));
+			advancedPanel.add(new JTextField());
+		}
 
-        tabbedPane.addTab(settingsMenuStrs.get("generalTab"), new GeneralPrefs());
-        tabbedPane.addTab(settingsMenuStrs.get("pathsTab"), new Paths());
-        tabbedPane.addTab("Advanced", advancedPanel);
-
-        this.add(tabbedPane, BorderLayout.NORTH);
-/*
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.setLayout(new GridLayout(2, 2));
-        bottomPanel.add(new JLabel("Setting 5:"));
-        bottomPanel.add(new JTextField());
-        bottomPanel.add(new JLabel("Setting 6:"));
-        bottomPanel.add(new JTextField());*/
-
-//        add(bottomPanel, BorderLayout.CENTER);
+		{
+			tabbedPane.addTab(settingsMenuStrs.get("generalTab"), new GeneralPrefs());
+			tabbedPane.addTab(settingsMenuStrs.get("pathsTab"), new Paths());
+			tabbedPane.addTab("Advanced", advancedPanel);
+			this.add(tabbedPane, BorderLayout.NORTH);
+		}
         
         
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
-		Map<String, String> dialogMsgStrs = I18N.getStrings("dialog/messages");
 
-		JButton okButton = new JButton(I18N.getStrings("dialog").get("okButton"));
+		JButton okButton = new JButton(dialogStrs.get("okButton"));
 		okButton.setActionCommand("OK");
 		okButton.addActionListener((ActionEvent e) -> {
 			SettingsWindow.saveSettings();
@@ -99,7 +95,7 @@ public class SettingsWindow extends JFrame {
 
 		
 		
-		JButton cancelButton = new JButton(I18N.getStrings("dialog").get("cancelButton"));
+		JButton cancelButton = new JButton(dialogStrs.get("cancelButton"));
 		cancelButton.setActionCommand("Cancel");
 		cancelButton.addActionListener((ActionEvent e) -> {
 			
@@ -115,11 +111,14 @@ public class SettingsWindow extends JFrame {
 					}
 
 					public void onCancel() {}
-				});
+				}
+			);
 			
 		});
+		
 
 		buttonPane.add(cancelButton);
+		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 		
 
         this.setVisible(true);

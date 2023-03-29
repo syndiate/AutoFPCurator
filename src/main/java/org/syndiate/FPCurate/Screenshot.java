@@ -26,26 +26,30 @@ public class Screenshot {
 	
 	public static HWND findWindowHandle(String windowHandle) {
 		
-        // Find the Flash Player projector window
+		
+        // Find any given window
         final HWND[] windowHandles = new HWND[1];
-        User32.INSTANCE.EnumWindows(new WinUser.WNDENUMPROC() {
-            public boolean callback(HWND hWnd, Pointer data) {
-                char[] windowText = new char[512];
-                User32.INSTANCE.GetWindowText(hWnd, windowText, 512);
-                String wText = Native.toString(windowText);
+        
+		User32.INSTANCE.EnumWindows((HWND hWnd, Pointer data) -> {
+			
+			char[] windowText = new char[512];
+			User32.INSTANCE.GetWindowText(hWnd, windowText, 512);
+			String wText = Native.toString(windowText);
 
-                if (wText.contains(windowHandle)) {
-                    windowHandles[0] = hWnd;
-                    return false;
-                }
-
-                return true;
-            }
-        }, null);
+			
+			if (wText.contains(windowHandle)) {
+				windowHandles[0] = hWnd;
+				return false;
+			}
+			return true;
+			
+		}, null);
+		
         
         return windowHandles[0];
         
     }
+	
 	
 
 	public static BufferedImage takeScreenshot() {
@@ -69,6 +73,7 @@ public class Screenshot {
 		
 
 		// Take a screenshot of the Flash Player projector window
+		// TODO: ADJUST THIS FOR DIFFERENT WINDOW POSITIONS, LOCATIONS, AND SIZES
 		BufferedImage screenshot = null;
 		try {
 			screenshot = new Robot().createScreenCapture(new Rectangle(rect.left + 8, rect.top + 8, width - 15, height - 15));

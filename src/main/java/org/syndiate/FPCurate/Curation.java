@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -32,6 +33,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
 import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream;
 import org.apache.commons.io.FileUtils;
@@ -59,7 +61,7 @@ public class Curation {
 		
 		this.curationId = UUID.randomUUID().toString();
 		
-		this.curFolder = new File(SettingsManager.getSetting("workingCurations") + "/" + curationId);
+		this.curFolder = new File(SettingsManager.getSetting("workingCurations") + File.separator + curationId);
 		this.curFolder.mkdirs();
 		this.metaYAML = new File(curFolder + "/meta.yaml");
 		
@@ -73,10 +75,248 @@ public class Curation {
 	
 	
 	
+
+	
+	
+	
+	
+	
+	
+	public void writeMeta(String key, String value) {
+		
+		try {
+			
+			Yaml yaml = new Yaml();
+			FileReader reader = new FileReader(this.metaYAML);
+			Map<String, String> meta = yaml.load(reader);
+			
+			
+			if (meta == null) {
+				meta = new HashMap<>();
+			}
+			if (value.equals("")) {
+				value = null;
+			}
+			meta.put(key, value);
+			
+
+			FileWriter writer = new FileWriter(this.metaYAML);
+			
+			DumperOptions options = new DumperOptions();
+	        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+	        options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
+	        
+			new Yaml(options).dump(meta, writer);
+
+			writer.close();
+			reader.close();
+			
+			
+		} catch (IOException e) {
+			new ErrorDialog(new IOException("Could not parse/write to the meta.yaml file.", e));
+		}
+		
+	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static boolean isDupe(String gameTitle, String UUID) {
+		
+		
+		System.out.println("Possible dupe.");
+        System.out.println("Title in question:" + gameTitle);
+        	
+        String initialDecision = input("Do you want to terminate the curation (Y/N), or do you want more information on the curation in question (More)?").toLowerCase();
+        	
+        switch(initialDecision) {
+        
+        	
+        	case "y":
+        		return true;
+        	case "n":
+        		return false;
+        	case "more": {
+        		
+        		
+        		String curationData = Jsoup.parse(FPData.getCurationData(UUID)).selectFirst("pre").text();
+        		System.out.println("Metadata of the curation:");
+        		System.out.print(curationData);
+        		
+        		String finalDecision = input("Do you want to terminate the curation (Y/N)?").toLowerCase();
+        		
+        		
+        		if (finalDecision.equals("y")) return true;
+        		if (finalDecision.equals("n")) return false;
+        		
+        		
+        		System.out.println("Invalid option entered. Skipping.");
+				return false;
+        		
+        		
+        	}
+        	
+        	default: {
+        		System.out.println("Invalid option entered. Skipping.");
+        		return false;
+        	}
+        		
+        			
+        }
+        
+        
+	}
+	
+	public static void dupeCheck(String title) {
+		
+		
+		String searchHTML = FPData.getSearchData(title);
+		if (searchHTML == "") return;
+		Document searchData = Jsoup.parse(searchHTML);
+		
+		
+		for (Element game : searchData.select("div.game")) {
+			
+			
+		
+			String gameTitle = game.selectFirst("a").text().replaceAll("\\[.*?\\]", "");
+			String UUID = game.selectFirst("div.game-details").attr("data-id");
+			LevenshteinDistance ld = new LevenshteinDistance();
+			
+			int distance = ld.apply(title, gameTitle);
+			int maxLength = Math.max(title.length(), gameTitle.length());
+			
+	        double similarityPercentage = ((double) (maxLength - distance)) / maxLength * 100.0;
+	        
+	        
+	        if (similarityPercentage < 0.85) {
+	        	continue;
+	        }
+	        
+	        boolean shouldEndCuration = Curation.isDupe(gameTitle, UUID);
+	        
+	        
+	        if (shouldEndCuration) {
+	        	closeCuration(UUID, false);
+	        } else {
+	        	continue;
+	        }
+	        
+			
+			
+		}
+		
+	}
+
+	
+	
+	
+	
+	
+	
+	public void zipCuration() {
+		String outputPath = SettingsManager.getSetting("zippedCurations") + File.separator + curationId + ".7z";
+		
+		try {
+			SevenZOutputFile archive = new SevenZOutputFile(new File(outputPath));
+			compressFolder(curFolder, archive, "");
+			archive.close();
+		} catch (IOException e) {
+			new ErrorDialog(e);
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	private void compressFolder(File folder, SevenZOutputFile archive, String basePath) throws IOException {
+        String archiveName = basePath + folder.getName() + File.separator;
+        SevenZArchiveEntry entry = archive.createArchiveEntry(folder, archiveName);
+        archive.putArchiveEntry(entry);
+        archive.closeArchiveEntry();
+        
+
+        for (File file : folder.listFiles()) {
+        	
+			if (file.isDirectory()) {
+				compressFolder(file, archive, archiveName);
+				continue;
+			}
+
+			String filePath = file.getAbsolutePath().substring(folder.getAbsolutePath().length() + 1);
+			String entryName = basePath + folder.getName() + File.separator + filePath;
+			entry = archive.createArchiveEntry(file, entryName);
+			archive.putArchiveEntry(entry);
+
+			InputStream input = new FileInputStream(file);
+			byte[] buffer = new byte[1024];
+			int bytesRead;
+			while ((bytesRead = input.read(buffer)) > 0) {
+				archive.write(buffer, 0, bytesRead);
+			}
+
+			archive.closeArchiveEntry();
+			input.close();
+
+		}
+    }
+
+	
+	
+	
+	
+	
+	
+	
+	public static void closeCuration(String curationId, boolean endProgram) {
+		
+		try {
+			FileUtils.deleteDirectory(new File("fpCurRoot" + curationId));
+			Runtime.getRuntime().exec("taskkill /f /im flashplayer_32_sa.exe & taskkill /f /im cmd.exe");
+		} catch (IOException ex) {
+			new ErrorDialog(ex);
+			return;
+//			System.exit(0);
+		}
+		
+		
+		if (endProgram) {
+			System.exit(0);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	public void init(File swfPath) {
-		
-//		System.out.println("test");
 		
 		
 		try {
@@ -258,71 +498,16 @@ public class Curation {
 		
 		
 		input("Press enter to zip the curation.");
+		log("Zipping curation...");
+		zipCuration();
+		/*
 		try {
 			zipCuration();
 		} catch (IOException e) {
 			new ErrorDialog(e);
-		}
+		}*/
 		
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
-	
-	
-	
-	
-	
-	
-	public void writeMeta(String key, String value) {
-		
-		try {
-			
-			Yaml yaml = new Yaml();
-			FileReader reader = new FileReader(this.metaYAML);
-			Map<String, String> meta = yaml.load(reader);
-			
-			
-			if (meta == null) {
-				meta = new HashMap<>();
-			}
-			if (value.equals("")) {
-				value = null;
-			}
-			meta.put(key, value);
-			
-
-			FileWriter writer = new FileWriter(this.metaYAML);
-			
-			DumperOptions options = new DumperOptions();
-	        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-	        options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
-	        
-			new Yaml(options).dump(meta, writer);
-
-			writer.close();
-			reader.close();
-			
-			
-		} catch (IOException e) {
-			new ErrorDialog(new IOException("Could not parse/write to the meta.yaml file.", e));
-		}
-		
-	}
-
-	
-	
-	
-	
 	
 	
 	
@@ -357,13 +542,10 @@ public class Curation {
 	        row.add(label);
 	        row.add(field);
 	        row.add(Box.createRigidArea(new Dimension(0, 10)));
-	        MainWindow.mainPanel.add(row);
+	        MainWindow.addComponent(row);
 	        field.requestFocusInWindow();
-	        
-	        
 
-	        MainWindow.mainPanel.revalidate();
-	        MainWindow.mainPanel.repaint();
+	        
 	    });
 
 	    
@@ -378,95 +560,15 @@ public class Curation {
 		
 	}
 	
-	
-	
-	
-	
-	
-	public static boolean isDupe(String gameTitle, String UUID) {
+	private static void log(String log) {
 		
-		
-		System.out.println("Possible dupe.");
-        System.out.println("Title in question:" + gameTitle);
-        	
-        String initialDecision = input("Do you want to terminate the curation (Y/N), or do you want more information on the curation in question (More)?").toLowerCase();
-        	
-        switch(initialDecision) {
-        
-        	
-        	case "y":
-        		return true;
-        	case "n":
-        		return false;
-        	case "more": {
-        		
-        		
-        		String curationData = Jsoup.parse(FPData.getCurationData(UUID)).selectFirst("pre").text();
-        		System.out.println("Metadata of the curation:");
-        		System.out.print(curationData);
-        		
-        		String finalDecision = input("Do you want to terminate the curation (Y/N)?").toLowerCase();
-        		
-        		
-        		if (finalDecision.equals("y")) return true;
-        		if (finalDecision.equals("n")) return false;
-        		
-        		
-        		System.out.println("Invalid option entered. Skipping.");
-				return false;
-        		
-        		
-        	}
-        	
-        	default: {
-        		System.out.println("Invalid option entered. Skipping.");
-        		return false;
-        	}
-        		
-        			
-        }
-        
-        
-	}
-	
-	public static void dupeCheck(String title) {
-		
-		
-		String searchHTML = FPData.getSearchData(title);
-		if (searchHTML == "") return;
-		Document searchData = Jsoup.parse(searchHTML);
-		
-		
-		for (Element game : searchData.select("div.game")) {
+		SwingUtilities.invokeLater(() -> {
 			
+			JLabel label = new JLabel(log);
+	        label.setPreferredSize(new Dimension(100, 20));
+	        MainWindow.addComponent(label);
 			
-		
-			String gameTitle = game.selectFirst("a").text().replaceAll("\\[.*?\\]", "");
-			String UUID = game.selectFirst("div.game-details").attr("data-id");
-			LevenshteinDistance ld = new LevenshteinDistance();
-			
-			int distance = ld.apply(title, gameTitle);
-			int maxLength = Math.max(title.length(), gameTitle.length());
-			
-	        double similarityPercentage = ((double) (maxLength - distance)) / maxLength * 100.0;
-	        
-	        
-	        if (similarityPercentage < 0.85) {
-	        	continue;
-	        }
-	        
-	        boolean shouldEndCuration = Curation.isDupe(gameTitle, UUID);
-	        
-	        
-	        if (shouldEndCuration) {
-	        	closeCuration(UUID, false);
-	        } else {
-	        	continue;
-	        }
-	        
-			
-			
-		}
+		});
 		
 	}
 	
@@ -474,94 +576,6 @@ public class Curation {
 	
 	
 	
-	
-	public void zipCuration() throws IOException {
-
-        String outputPath = SettingsManager.getSetting("zippedCurations") + "/" + curationId + ".7z";
-
-        XZCompressorOutputStream xzOutputStream = new XZCompressorOutputStream(new FileOutputStream(outputPath));
-        SevenZOutputFile sevenZOutput = new SevenZOutputFile(curFolder);
-
-        // get all the files and subdirectories in the folder
-        Path folder = Paths.get(curFolder.toString());
-        Files.walk(folder)
-                .filter(Files::isRegularFile)
-                .forEach(file -> {
-                    try {
-                        // create an input stream for the file
-                        FileInputStream inputStream = new FileInputStream(file.toFile());
-
-                        // add the file to the compressed archive
-                        String fileName = folder.relativize(file).toString();
-                        sevenZOutput.putArchiveEntry(sevenZOutput.createArchiveEntry(file.toFile(), fileName));
-                        byte[] buffer = new byte[8192];
-                        int len;
-                        while ((len = inputStream.read(buffer)) != -1) {
-                            xzOutputStream.write(buffer, 0, len);
-                        }
-                        sevenZOutput.closeArchiveEntry();
-
-                        // close the input stream
-                        inputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-        sevenZOutput.close();
-        xzOutputStream.close();
-        
-        /*
-        SevenZOutputFile sevenZOutput = new SevenZOutputFile(new File(outputPath));
-
-
-        File[] files = curFolder.listFiles();
-
-        for (File file : files) {
-        	
-        	FileInputStream inputStream = new FileInputStream(file);
-            String fileName = file.getName();
-            IOUtils.copy(inputStream, sevenZOutput.create);
-            sevenZOutput.putArchiveEntry(sevenZOutput.createArchiveEntry(file, fileName));
-            sevenZOutput.closeArchiveEntry();
-            
-        }
-
-        sevenZOutput.close();*/
-	}
-	
-	
-	
-	
-	
-	
-	
-	public static void closeCuration(String curationId, boolean endProgram) {
-		
-		try {
-			FileUtils.deleteDirectory(new File("fpCurRoot" + curationId));
-			Runtime.getRuntime().exec("taskkill /f /im flashplayer_32_sa.exe & taskkill /f /im cmd.exe");
-		} catch (IOException ex) {
-			System.out.println("An unknown error occurred.");
-			System.exit(0);
-		}
-		
-		
-		if (endProgram) {
-			System.exit(0);
-		}
-	}
-	
-	
-	
-	
-	/*
-	public static void main(String[] args) throws IOException {
-		
-		
-		
-		
-		
-	}*/
 	
 	
 	

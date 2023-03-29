@@ -35,6 +35,7 @@ public class ConfirmDialog extends JDialog {
 	 */
 	public ConfirmDialog(String confirmationMsg, ConfirmationListener listener) {
 		
+		
 		Map<String, String> dialogStrs = I18N.getStrings("dialog");
 		
 		if (confirmationMsg == null) {
@@ -52,9 +53,7 @@ public class ConfirmDialog extends JDialog {
 			    dialogStrs.get("confirmationTitle"),
 			    JOptionPane.OK_CANCEL_OPTION
 			);
-		
-		this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-		this.setVisible(true);
+
 		
 		if (confirmationResult == JOptionPane.OK_OPTION) {
 			CommonGUI.closeDialog(this);
@@ -63,6 +62,10 @@ public class ConfirmDialog extends JDialog {
 			CommonGUI.closeDialog(this);
 		    listener.onCancel();
 		}
+		
+		
+		this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		this.setVisible(true);
 	}
 	
 

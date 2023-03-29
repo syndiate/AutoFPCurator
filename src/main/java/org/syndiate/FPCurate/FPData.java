@@ -11,6 +11,8 @@ import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 
 public class FPData {
 	
+	
+	
 	private static final String fpDataDomain = "https://flashpoint-search.unstable.life";
 	private static final String searchDataEndpoint = fpDataDomain + "/search.php";
 	private static final String curationDataEndpoint = fpDataDomain + "/view.php";
@@ -41,6 +43,8 @@ public class FPData {
 	        try (OutputStream os = connection.getOutputStream()) {
 	            byte[] input = jsonInputString.getBytes("utf-8");
 	            os.write(input, 0, input.length);           
+	        } catch (Exception e) {
+	        	new ErrorDialog(e);
 	        }
 	        int responseCode = connection.getResponseCode();
 	        
@@ -48,6 +52,7 @@ public class FPData {
 	        	throw new Exception("Failed to retrieve search data. Is flashpoint-search.unstable.life down?");
 	        }
 	        		
+	        
 	        
 	        BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"));
 	        
@@ -58,12 +63,13 @@ public class FPData {
 	            responseLine.append(currentLine.trim());
 	        }
 	        
+	        
 	        searchData = responseLine.toString();
 	        
 	        
 	        
 		} catch(Exception e) {
-			e.printStackTrace();
+			new ErrorDialog(e);
 		}
 		
 		

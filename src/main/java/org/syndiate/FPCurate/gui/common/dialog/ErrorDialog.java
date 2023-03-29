@@ -49,10 +49,13 @@ public class ErrorDialog extends JDialog {
 		  
 		  Map<String, String> dialogStrs = I18N.getStrings("dialog");
 		
+		  
 		  setTitle(dialogStrs.get("errorTitle")); 
 		  setSize(450, 400);
 		  setLocationRelativeTo(null); 
 		  setBounds(100, 100, 450, 300);
+		  
+
 		  getContentPane().setLayout(new BorderLayout()); 
 		  contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5)); 
 		  getContentPane().add(contentPanel, BorderLayout.CENTER); 
@@ -93,6 +96,8 @@ public class ErrorDialog extends JDialog {
 		  JPanel buttonPane = new JPanel(); buttonPane.setLayout(new
 		  FlowLayout(FlowLayout.RIGHT)); getContentPane().add(buttonPane,
 		  BorderLayout.SOUTH);
+		  
+		  
 		  
 		  this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		  this.setVisible(true);

@@ -23,6 +23,7 @@ public class Paths extends JPanel {
 	private Map<String, String> pathsMenuStrs;
 
 	
+	
 	public Paths() {
 
 		this.pathsMenuStrs = I18N.getStrings("settings/paths");

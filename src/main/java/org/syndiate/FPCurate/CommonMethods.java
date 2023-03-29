@@ -15,6 +15,8 @@ import com.google.gson.JsonSyntaxException;
 
 public class CommonMethods {
 	
+	
+	
 	public static String getResource(String filePath) {
 		
 		InputStream is = I18N.class.getClassLoader().getResourceAsStream(filePath);
@@ -22,6 +24,7 @@ public class CommonMethods {
 			return null;
 		}
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
+		
 		
 		String currentLine = "";
 		StringBuilder resourceContents = new StringBuilder("");
@@ -61,7 +64,9 @@ public class CommonMethods {
 		
 		String fileName = file.getName();
 		int lastDotIndex = fileName.lastIndexOf('.');
-		if (lastDotIndex <= 0) return "";
+		if (lastDotIndex <= 0) {
+			return "";
+		}
 		
 
 		String fileExtension = fileName.substring(lastDotIndex + 1);

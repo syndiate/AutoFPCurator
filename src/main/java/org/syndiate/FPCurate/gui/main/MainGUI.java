@@ -22,39 +22,7 @@ import org.syndiate.FPCurate.gui.common.dialog.GenericDialog;
 
 public class MainGUI {
 	
-	
-	
-	
-/*
-	public static Console createConsoleOutput(int width, int height) {
 
-		JTextArea consoleTextArea = new JTextArea();
-		consoleTextArea.setEditable(true);
-		consoleTextArea.setLineWrap(true);
-		consoleTextArea.setWrapStyleWord(true);
-		consoleTextArea.setBackground(Color.WHITE);
-		consoleTextArea.setForeground(Color.BLACK);
-		consoleTextArea.setSize(width, height);
-
-		JScrollPane scrollPane = new JScrollPane(consoleTextArea);
-		
-		System.setOut(new PrintStream(new ConsoleOutput(consoleTextArea)));
-		System.setIn(new ConsoleInput(consoleTextArea));
-
-		return new Console();
-
-	}*/
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
 
@@ -63,19 +31,17 @@ public class MainGUI {
 	 */
 	
 	public static JMenuBar initMenuBar() {
-
-		
-		
-		JMenuBar menuBar = new JMenuBar();
-		
-		menuBar.setOpaque(true);
-		menuBar.setBackground(Color.WHITE);
 		
 
 		Map<String, String> menuBarStrings = I18N.getStrings("main/menu_bar");
 		Map<String, String> fileMenuItemStrings = I18N.getStrings("main/menu_bar/popups/file");
 		Map<String, String> dialogMsgs = I18N.getStrings("dialog/messages");
 		
+		
+		JMenuBar menuBar = new JMenuBar();
+		menuBar.setOpaque(true);
+		menuBar.setBackground(Color.WHITE);
+
 		
 
 		JMenu fileMenu = new JMenu(menuBarStrings.get("file"));
@@ -84,13 +50,15 @@ public class MainGUI {
 		
 		JMenuItem openItem = new JMenuItem(fileMenuItemStrings.get("open"));
 		openItem.addActionListener((ActionEvent e) -> {
+			
 
 			JFileChooser fileChooser = new JFileChooser();
 			fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 
 			int result = fileChooser.showOpenDialog(null);
-			if (result != JFileChooser.APPROVE_OPTION)
+			if (result != JFileChooser.APPROVE_OPTION) {
 				return;
+			}
 
 			File selectedFile = fileChooser.getSelectedFile();
 			
@@ -110,6 +78,7 @@ public class MainGUI {
 				}
 				return;
 			}
+			
 
 		});
 		CommonGUI.setMenuItemShortcut(openItem, KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK);
@@ -142,7 +111,6 @@ public class MainGUI {
 			});
 
 		});
-		fileMenu.add(restart);
 		
 		
 
@@ -161,10 +129,10 @@ public class MainGUI {
 			});
 
 		});
+		
+		
+		fileMenu.add(restart);
 		fileMenu.add(exit);
-		
-		
-		
 		
 		menuBar.add(fileMenu);
 		return menuBar;

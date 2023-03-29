@@ -17,6 +17,7 @@ public class I18N {
 		
 	}
 	
+	
 	public static String getLanguage() {
 		return SettingsManager.getSetting("globalLanguage");
 	}

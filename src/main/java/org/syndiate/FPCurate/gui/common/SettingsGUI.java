@@ -47,12 +47,6 @@ public class SettingsGUI {
 		JComboBox<String> dropdown = new JComboBox<>(dropdownItems);
 		dropdown.setSelectedItem(selectedItem);
 		dropdown.addItemListener(listener);
-		/*
-		 * dropdown.addItemListener((ItemEvent e) -> {
-		 * SettingsWindow.queueSetting(settingsId,
-		 * dropdown.getSelectedItem().toString()); });
-		 */
-		
 		return dropdown;
 		
 		

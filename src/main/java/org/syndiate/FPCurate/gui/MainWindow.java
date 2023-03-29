@@ -3,6 +3,7 @@ package org.syndiate.FPCurate.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -37,10 +38,13 @@ import org.syndiate.FPCurate.gui.main.MainGUI;
 
 
 public class MainWindow {
+	
+	
+	
+	
 
-	private static JFrame frmAPCurator;
-	public static final String SUN_JAVA_COMMAND = "sun.java.command";
-	public static JPanel mainPanel;
+	private static final JFrame frmAPCurator = new JFrame();
+	private static JPanel mainPanel = new JPanel(new GridBagLayout());
 	private static Curation mainCuration;
 	
 	
@@ -57,24 +61,25 @@ public class MainWindow {
 
 	
 	public MainWindow() {
+		
 
 		try {
 			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 		} catch (Exception e) {
 			new ErrorDialog(new Exception("Could not load Windows look and feel", e));
 		}
+		Map<String, String> messageStrs = I18N.getStrings("main/message");
+		
 
-		frmAPCurator = new JFrame();
+		
 		frmAPCurator.getContentPane().setBackground(new Color(255, 255, 255));
 		frmAPCurator.setBackground(new Color(255, 255, 255));
 		frmAPCurator.setTitle("AutoFPCurator");
 		frmAPCurator.setSize(1280, 720);
 		frmAPCurator.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmAPCurator.setLocationRelativeTo(null);
-
 		frmAPCurator.setJMenuBar(MainGUI.initMenuBar());
 
-		Map<String, String> messageStrs = I18N.getStrings("main/message");
 
 		JLabel label = new JLabel(
 				"<html>" + messageStrs.get("instructions") + "<br>" + messageStrs.get("iterateThrough") + "<br><br><b>"
@@ -82,9 +87,9 @@ public class MainWindow {
 
 		label.setFont(label.getFont().deriveFont(14.0f));
 
-		MainWindow.mainPanel = new JPanel(new GridBagLayout());
+		
+		
 		MainWindow.mainPanel.add(label, new GridBagConstraints());
-
 		frmAPCurator.add(MainWindow.mainPanel, BorderLayout.CENTER);
 		frmAPCurator.setVisible(true);
 
@@ -96,25 +101,30 @@ public class MainWindow {
 	
 	
 	
+	
+	
 	public static void handleSWF(File swfFile) {
 		
-		if (SettingsManager.getSetting("workingCurations").equals("") || SettingsManager.getSetting("zippedCurations").equals("")) {
+		
+		String workingCurations = SettingsManager.getSetting("workingCurations");
+		String zippedCurations = SettingsManager.getSetting("zippedCurations");
+		
+		if (workingCurations.equals("") || zippedCurations.equals("")) {
 			new GenericDialog("Please specify what paths you would like AutoFPCurator to store working/zipped curations in in Settings > Paths.");
 			return;
 		}
 		
+		
+		
 		frmAPCurator.getContentPane().remove(MainWindow.mainPanel);
+		
 		
 		mainPanel = new JPanel();
 		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-//		mainPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 	    mainPanel.setBackground(new Color(255, 255, 255));
-//	    mainPanel.add(new CustomConsole().getAreaWrapper(), BorderLayout.WEST);
 	    
 	    
 	    JTabbedPane tabbedPane = new JTabbedPane();
-	    
-	    
         tabbedPane.setFocusable(false);
         tabbedPane.setSize(Toolkit.getDefaultToolkit().getScreenSize());
         
@@ -168,6 +178,7 @@ public class MainWindow {
 	    
 		
 	}
+	
 	public static void handleZippedCuration(File zippedCuration) {
 		
 	}
@@ -176,9 +187,10 @@ public class MainWindow {
 	
 	
 	
+	
+	
 	private static void loadMetaPanel(JPanel panel) {
 
-        // add new components to the panel
 		panel.setLayout(new BorderLayout());
 		
 		JTextArea metaView = new JTextArea();
@@ -210,6 +222,17 @@ public class MainWindow {
 		
 	}
 	
+
+	
+	
+	
+	public static void addComponent(Component comp) {
+		mainPanel.add(comp);
+		mainPanel.revalidate();
+        mainPanel.repaint();
+	}
+	
+	
 	
 	
 	
@@ -220,6 +243,8 @@ public class MainWindow {
 	// https://dzone.com/articles/programmatically-restart-java
 	public static void restartApplication(Runnable runBeforeRestart) {
 		
+		final String SUN_JAVA_COMMAND = "sun.java.command";
+		
 		try {
 			// java binary
 			String java = System.getProperty("java.home") + "/bin/java";
@@ -229,13 +254,13 @@ public class MainWindow {
 			StringBuilder vmArgsOneLine = new StringBuilder();
 			for (String arg : vmArguments) {
 				if (arg.contains("-agentlib")) continue;
-
+				
 				vmArgsOneLine.append(arg);
 				vmArgsOneLine.append(" ");
 			}
 			// init the command to execute, add the vm args
 			final StringBuilder cmd = new StringBuilder("\"" + java + "\" " + vmArgsOneLine);
-
+			
 			// program main and program arguments
 			String[] mainCommand = System.getProperty(SUN_JAVA_COMMAND).split(" ");
 			// program main is a jar
@@ -270,8 +295,6 @@ public class MainWindow {
 			new ErrorDialog(new Exception("Error while trying to restart the application", e));
 		}
 	}
-	
-	
 	
 	
 	

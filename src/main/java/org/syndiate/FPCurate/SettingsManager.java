@@ -13,14 +13,20 @@ public class SettingsManager {
     
     
     public static void saveSetting(String key, String value) {
-    	if (key == null || value == null) return;
+    	if (key == null || value == null) {
+    		return;
+    	}
     	prefs.put(key, value);
     }
     
+    
     public static String getSetting(String key) {
-    	if (key == null) return "";
+    	if (key == null) {
+    		return "";
+    	}
     	return prefs.get(key, SettingsManager.getDefaultSetting(key));
     }
+    
     
     public static String getDefaultSetting(String key) {
     	JsonObject defaultSettings = new JsonParser().parse(CommonMethods.getResource("defaultSettings.json")).getAsJsonObject();
