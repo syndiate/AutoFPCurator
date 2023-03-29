@@ -45,7 +45,7 @@ public class MainWindow {
 
 	private static final JFrame frmAPCurator = new JFrame();
 	private static JPanel mainPanel = new JPanel(new GridBagLayout());
-	private static Curation mainCuration;
+	private static Curation mainCuration = null;
 	
 	
 	
@@ -68,12 +68,37 @@ public class MainWindow {
 		} catch (Exception e) {
 			new ErrorDialog(new Exception("Could not load Windows look and feel", e));
 		}
-		Map<String, String> messageStrs = I18N.getStrings("main/message");
 		
+		loadWelcomeScreen();
+		frmAPCurator.setVisible(true);
+
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static void loadWelcomeScreen() {
+		
+		
+		Map<String, String> messageStrs = I18N.getStrings("main/message");
 
 		
-		frmAPCurator.getContentPane().setBackground(new Color(255, 255, 255));
-		frmAPCurator.setBackground(new Color(255, 255, 255));
+		frmAPCurator.getContentPane().removeAll();
+		frmAPCurator.getContentPane().revalidate();
+		frmAPCurator.getContentPane().repaint();
+		
+		mainPanel.setLayout(new GridBagLayout());
+		mainPanel.removeAll();
+		mainPanel.revalidate();
+		mainPanel.repaint();
+		
+		
+		
+		frmAPCurator.getContentPane().setBackground(new Color(237, 237, 236));
+		frmAPCurator.setBackground(new Color(237, 237, 236));
 		frmAPCurator.setTitle("AutoFPCurator");
 		frmAPCurator.setSize(1280, 720);
 		frmAPCurator.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -90,13 +115,12 @@ public class MainWindow {
 		
 		
 		MainWindow.mainPanel.add(label, new GridBagConstraints());
-		frmAPCurator.add(MainWindow.mainPanel, BorderLayout.CENTER);
-		frmAPCurator.setVisible(true);
-
+		
+		frmAPCurator.add(mainPanel, BorderLayout.CENTER);
+		frmAPCurator.revalidate();
+		frmAPCurator.repaint();
+		
 	}
-	
-	
-	
 	
 	
 	
