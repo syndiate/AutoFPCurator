@@ -2,5 +2,6 @@
 	"windowTitle": "Preferences",
 	"generalTab": "General",
 	"pathsTab": "Paths",
+	"curationTab": "Curation Process",
 	"restartDialog": "A restart is required for full changes to take effect. Restart now?"
 }

@@ -12,6 +12,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -123,6 +125,10 @@ public class Curation {
 	
 	
 	
+	
+	
+	
+	
 	public static boolean dupeCheck(String title) {
 		
 		
@@ -176,8 +182,8 @@ public class Curation {
 	public static boolean isDupe(String gameTitle, String UUID) {
 		
 		
-		log("Possible dupe.");
-        log("Title in question:" + gameTitle);
+		System.out.println("Possible dupe.");
+        System.out.println("Title in question:" + gameTitle);
         	
         String initialDecision = input("Do you want to terminate the curation (Y/N), or do you want more information on the curation in question (More)?").toLowerCase();
         	
@@ -192,8 +198,8 @@ public class Curation {
         		
         		
         		String curationData = Jsoup.parse(FPData.getCurationData(UUID)).selectFirst("pre").text();
-        		log("Metadata of the curation:");
-        		log(curationData);
+        		System.out.println("Metadata of the curation:");
+        		System.out.println(curationData);
         		
         		String finalDecision = input("Do you want to terminate the curation (Y/N)?").toLowerCase();
         		
@@ -206,14 +212,14 @@ public class Curation {
         		}
         		
         		
-        		log("Invalid option entered. Skipping.");
+        		System.out.println("Invalid option entered. Skipping.");
 				return false;
         		
         		
         	}
         	
         	default: {
-        		log("Invalid option entered. Skipping.");
+        		System.out.println("Invalid option entered. Skipping.");
         		return false;
         	}
         		
@@ -222,6 +228,16 @@ public class Curation {
         
         
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -344,6 +360,24 @@ public class Curation {
 		
 		
 		
+		PrintStream customOut = new PrintStream(new OutputStream() {
+		    private StringBuilder sb = new StringBuilder();
+
+		    @Override
+		    public void write(int b) throws IOException {
+		        sb.append((char) b);
+		        if ((char) b == '\n') {
+		            JLabel label = new JLabel(sb.toString().trim());
+		            label.setPreferredSize(new Dimension(100, 30));
+		            MainWindow.addComponent(label);
+		            sb = new StringBuilder(); // reset the StringBuilder for the next output
+		        }
+		    }
+		});
+		System.setOut(customOut);
+		
+		
+		
 		try {
 			metaYAML.createNewFile();
 		} catch (IOException ex) {
@@ -387,14 +421,14 @@ public class Curation {
 		
 		
 		String title = input("Title:");
-		log("Checking for dupes...");
+		System.out.println("Checking for dupes...");
 		
 		if (Curation.dupeCheck(title)) {
 			 return;
 		}
 		
 		
-		writeMeta("Title", input("Title:"));
+		writeMeta("Title", title);
 		writeMeta("Alternate Titles", input("Alternate Titles:"));
 		
 		
@@ -533,12 +567,12 @@ public class Curation {
 		
 		
 		input("Press enter to zip and close the curation.");
-		log("Zipping curation...");
+		System.out.println("Zipping curation...");
 		
 		zipCuration();
 		
-		log("Zipped curation.");
-		log("Closing curation...");
+		System.out.println("Zipped curation.");
+		System.out.println("Closing curation...");
 		closeCuration();
 
 		
@@ -592,20 +626,6 @@ public class Curation {
 	    
 
 	    return "";
-		
-	}
-	
-	
-	
-	private static void log(String log) {
-		
-		SwingUtilities.invokeLater(() -> {
-			
-			JLabel label = new JLabel(log);
-	        label.setPreferredSize(new Dimension(100, 25));
-	        MainWindow.addComponent(label);
-			
-		});
 		
 	}
 	

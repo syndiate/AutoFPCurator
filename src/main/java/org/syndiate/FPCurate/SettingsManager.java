@@ -2,8 +2,9 @@ package org.syndiate.FPCurate;
 
 import java.util.prefs.Preferences;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+
 
 public class SettingsManager {
 	
@@ -29,7 +30,7 @@ public class SettingsManager {
     
     
     public static String getDefaultSetting(String key) {
-    	JsonObject defaultSettings = new JsonParser().parse(CommonMethods.getResource("defaultSettings.json")).getAsJsonObject();
+    	JsonObject defaultSettings = new Gson().fromJson(CommonMethods.getResource("defaultSettings.json"), JsonObject.class);
 
     	if (defaultSettings.get(key) == null) {
     		return "";

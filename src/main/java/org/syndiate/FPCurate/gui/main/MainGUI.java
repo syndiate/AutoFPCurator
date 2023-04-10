@@ -20,6 +20,10 @@ import org.syndiate.FPCurate.gui.common.dialog.ConfirmDialog;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmationListener;
 import org.syndiate.FPCurate.gui.common.dialog.GenericDialog;
 
+
+
+
+
 public class MainGUI {
 	
 
@@ -222,26 +226,5 @@ class ConsoleInput extends InputStream {
         b[off] = (byte) next;
         return 1;
     }
-}
-
-
-
-
-
-
-
-class ConsoleOutput extends OutputStream {
-
-	private JTextArea consoleTextArea;
-
-	public ConsoleOutput(JTextArea consoleTextArea) {
-		this.consoleTextArea = consoleTextArea;
-	}
-
-	public void write(int b) throws IOException {
-		consoleTextArea.append(String.valueOf((char) b));
-		consoleTextArea.setCaretPosition(consoleTextArea.getDocument().getLength());
-	}
 }*/
-
 

@@ -23,12 +23,12 @@ public class GeneralPrefs extends JPanel {
 	
 	public GeneralPrefs() {
 		
+		this.setLayout(new GridLayout(1, 2));
 		
 		Map<String, String> languages = I18N.getStrings("settings/general/languages");
 		Map<String, String> generalMenuStrs = I18N.getStrings("settings/general");
 		
 		
-		this.setLayout(new GridLayout(1, 2));
 		this.add(new JLabel(generalMenuStrs.get("languageDropdown")));
 		
 		

@@ -158,12 +158,11 @@ public class MainWindow {
         tabbedPane.addChangeListener((ChangeEvent e) -> {
         	
         	int index = tabbedPane.getSelectedIndex();
-        	JPanel panel = (JPanel) tabbedPane.getComponentAt(index);
-        	panel.removeAll();
+        	Component comp = tabbedPane.getComponentAt(index);
         	
         	switch (index) {
         		case 1:
-        			MainWindow.loadMetaPanel(panel);
+        			MainWindow.loadMetaPanel((JPanel) comp);
         			break;
         	}
         	
@@ -213,9 +212,9 @@ public class MainWindow {
 	
 	
 	
-	private static void loadMetaPanel(JPanel panel) {
+	private static void loadMetaPanel(JPanel comp) {
 
-		panel.setLayout(new BorderLayout());
+		comp.setLayout(new BorderLayout());
 		
 		JTextArea metaView = new JTextArea();
 		metaView.setEditable(true);
@@ -240,9 +239,9 @@ public class MainWindow {
 		
 		metaView.setText(meta.toString());
 
-		panel.add(new JScrollPane(metaView), BorderLayout.CENTER);
-        panel.revalidate();
-        panel.repaint();
+		comp.add(new JScrollPane(metaView), BorderLayout.CENTER);
+		comp.revalidate();
+		comp.repaint();
 		
 	}
 	

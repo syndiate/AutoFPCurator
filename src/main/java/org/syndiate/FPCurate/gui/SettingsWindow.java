@@ -2,7 +2,6 @@ package org.syndiate.FPCurate.gui;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,17 +10,18 @@ import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
 
 import org.syndiate.FPCurate.I18N;
 import org.syndiate.FPCurate.SettingsManager;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmDialog;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmationListener;
+import org.syndiate.FPCurate.gui.preferences.CurationPrefs;
 import org.syndiate.FPCurate.gui.preferences.GeneralPrefs;
 import org.syndiate.FPCurate.gui.preferences.Paths;
+
+
 
 public class SettingsWindow extends JFrame {
 
@@ -49,32 +49,16 @@ public class SettingsWindow extends JFrame {
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
+        
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setFocusable(false);
+
         
-
-        JPanel generalPanel = new JPanel();
-		{
-			generalPanel.setLayout(new GridLayout(1, 1));
-			generalPanel.add(new JLabel("Setting 1:"));
-			generalPanel.add(new JTextField());
-			generalPanel.add(new JLabel("Setting 2:"));
-			generalPanel.add(new JTextField());
-		}
-
-        JPanel advancedPanel = new JPanel();
-		{
-			advancedPanel.setLayout(new GridLayout(2, 2));
-			advancedPanel.add(new JLabel("Setting 3:"));
-			advancedPanel.add(new JTextField());
-			advancedPanel.add(new JLabel("Setting 4:"));
-			advancedPanel.add(new JTextField());
-		}
 
 		{
 			tabbedPane.addTab(settingsMenuStrs.get("generalTab"), new GeneralPrefs());
 			tabbedPane.addTab(settingsMenuStrs.get("pathsTab"), new Paths());
-			tabbedPane.addTab("Advanced", advancedPanel);
+//			tabbedPane.addTab(settingsMenuStrs.get("curationTab"), new CurationPrefs());
 			this.add(tabbedPane, BorderLayout.NORTH);
 		}
         
