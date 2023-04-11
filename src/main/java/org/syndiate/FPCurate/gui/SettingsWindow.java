@@ -17,9 +17,7 @@ import org.syndiate.FPCurate.I18N;
 import org.syndiate.FPCurate.SettingsManager;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmDialog;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmationListener;
-import org.syndiate.FPCurate.gui.preferences.CurationPrefs;
-import org.syndiate.FPCurate.gui.preferences.GeneralPrefs;
-import org.syndiate.FPCurate.gui.preferences.Paths;
+import org.syndiate.FPCurate.gui.preferences.*;
 
 
 

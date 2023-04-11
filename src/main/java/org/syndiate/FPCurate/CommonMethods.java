@@ -44,6 +44,8 @@ public class CommonMethods {
 	
 	
 	
+	
+	
 	public static Object parseJSONStr(String json) {
 		
 		Object jsonObj;
@@ -58,6 +60,8 @@ public class CommonMethods {
 		return jsonObj;
 		
 	}
+	
+	
 	
 	
 	public static String getFileExtension(File file) {

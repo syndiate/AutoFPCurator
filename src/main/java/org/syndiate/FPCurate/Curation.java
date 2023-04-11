@@ -19,6 +19,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -43,6 +44,10 @@ import org.syndiate.FPCurate.gui.MainWindow;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
 
 
@@ -115,6 +120,31 @@ public class Curation {
 		
 	}
 
+	
+	
+	
+	
+	
+	public static String generateTagCats(String tagsStr) {
+		
+		String[] tags = tagsStr.split(";");
+		List<TagElement> elements = new Gson().fromJson(CommonMethods.getResource("tags.json"), new TypeToken<List<TagElement>>() {}.getType());
+		
+		for (String tag : tags) {
+			
+			// TODO
+			return "";
+			
+		}
+		return "";
+		
+	}
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -291,6 +321,9 @@ public class Curation {
 	
 	
 	
+	
+	
+	
 	public static void closeCuration(String curationId, boolean endProgram) {
 		
 		try {
@@ -420,8 +453,13 @@ public class Curation {
 		
 		
 		
+		
 		String title = input("Title:");
 		System.out.println("Checking for dupes...");
+		
+		
+		
+		
 		
 		if (Curation.dupeCheck(title)) {
 			 return;
@@ -430,6 +468,9 @@ public class Curation {
 		
 		writeMeta("Title", title);
 		writeMeta("Alternate Titles", input("Alternate Titles:"));
+		
+		
+		
 		
 		
 		String curType = input("Game or animation? (G/A)").toLowerCase();
@@ -447,6 +488,9 @@ public class Curation {
 				writeMeta("Library", "arcade");
 				break;
 		}
+		
+		
+		
 		
 		
 		writeMeta("Series", input("Series:"));
@@ -474,8 +518,13 @@ public class Curation {
 		}
 		
 		
+		
+		
+		
 		writeMeta("Release Date", input("Release Date:"));
 		writeMeta("Version", input("Version:"));
+		
+		
 		
 		
 		String langs = input("Languages (separate with semicolons:");
@@ -488,6 +537,9 @@ public class Curation {
 		
 		
 		
+		
+		
+		/*
 		String extreme = input("Extreme (Y/N):");
 		switch (extreme.toLowerCase()) {
 			case "yes":
@@ -502,7 +554,9 @@ public class Curation {
 				System.out.println("Invalid option entered. Defaulting to no.");
 				writeMeta("Extreme", "No");
 				break;
-		}
+		}*/
+		
+		
 		
 		
 		
@@ -511,6 +565,14 @@ public class Curation {
 			System.out.println("Warning: No tags entered. If this was a mistake, please fix it directly in the meta.yaml file.");
 		}
 		writeMeta("Tags", tags);
+		
+		
+		System.out.println("Generating tag categories...");
+		String tagCats = Curation.generateTagCats(tags);
+		
+		
+		
+		
 		
 		
 		
@@ -523,7 +585,17 @@ public class Curation {
 		
 		
 		
-		String status = input("Status (separate with semicolons, p - playable, pa - partial, h - hacked):").replaceAll("pa",  "Partial").replaceAll("h", "Hacked").replaceAll("p", "Playable");
+		
+		
+		
+		
+		
+		
+		
+		String status = input("Status (separate with semicolons, p - playable, pa - partial, h - hacked):")
+				.replaceAll("pa",  "Partial")
+				.replaceAll("h", "Hacked")
+				.replaceAll("p", "Playable");
 		if (status.equals("")) {
 			System.out.println("No status entered. Defaulting to playable.");
 			writeMeta("Status", "Playable");
@@ -538,11 +610,15 @@ public class Curation {
 		
 		
 		
+		
+		
 		writeMeta("Game Notes", input("Game Notes:"));
 		writeMeta("Original Description", input("Original Description:"));
 		writeMeta("Curation Notes", "");
 		writeMeta("Mount Parameters", "");
-		writeMeta("Additional Applications", "{}");
+		writeMeta("Additional Applications", new Object());
+		
+		
 		
 		
 		String ssConfirm = input("Enter Yes/Y/[blank] to take a screenshot (PLEASE HAVE THE GAME OPEN!).");
@@ -581,6 +657,20 @@ public class Curation {
 	
 	
 	
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
 	private static String input(String prompt) {
 		
 		CompletableFuture<String> future = new CompletableFuture<>();
@@ -642,3 +732,10 @@ public class Curation {
 	}
 
 }
+
+
+
+
+
+
+record TagElement(String[] aliases, String category) {}
