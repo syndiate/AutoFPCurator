@@ -51,9 +51,8 @@ public class ErrorDialog extends JDialog {
 		
 		  
 		  setTitle(dialogStrs.get("errorTitle")); 
-		  setSize(900, 800);
 		  setLocationRelativeTo(null); 
-		  setBounds(100, 100, 450, 300);
+		  setBounds(100, 100, 900, 800);
 		  
 
 		  getContentPane().setLayout(new BorderLayout()); 

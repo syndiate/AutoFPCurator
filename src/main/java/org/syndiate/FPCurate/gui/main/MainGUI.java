@@ -1,15 +1,26 @@
 package org.syndiate.FPCurate.gui.main;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import org.syndiate.FPCurate.CommonMethods;
 import org.syndiate.FPCurate.I18N;
@@ -18,6 +29,7 @@ import org.syndiate.FPCurate.gui.SettingsWindow;
 import org.syndiate.FPCurate.gui.common.CommonGUI;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmDialog;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmationListener;
+import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 import org.syndiate.FPCurate.gui.common.dialog.GenericDialog;
 
 
@@ -141,6 +153,70 @@ public class MainGUI {
 		menuBar.add(fileMenu);
 		return menuBar;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+	
+	
+	
+	
+	
+	public static String input(String prompt, KeyAdapter event) {
+		
+		CompletableFuture<String> future = new CompletableFuture<>();
+		
+	    SwingUtilities.invokeLater(() -> {
+
+	    	JPanel row = new JPanel();
+	    	row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+	    	row.setBackground(new Color(255, 255, 255));
+	    	row.setAlignmentX(Component.LEFT_ALIGNMENT);
+	    	
+	    	
+	        JLabel label = new JLabel(prompt);
+	        label.setPreferredSize(new Dimension(100, 20));
+
+	        JTextField field = new JTextField();
+	        field.addActionListener((ActionEvent e) -> {
+	            future.complete(field.getText());
+	        });
+	        field.addKeyListener(event);
+
+	        
+			Dimension textFieldSize = new Dimension(235, 25);
+	        field.setMaximumSize(textFieldSize);
+	        field.setPreferredSize(textFieldSize);
+	        
+	        
+	        row.add(label);
+	        row.add(field);
+	        row.add(Box.createRigidArea(new Dimension(0, 10)));
+	        MainWindow.addComponent(row);
+	        field.requestFocusInWindow();
+
+	        
+	    });
+
+	    try {
+	        return future.get();
+	    } catch (InterruptedException | ExecutionException e) {
+	        new ErrorDialog(e);
+	    }
+	    
+
+	    return "";
+		
+	}
 
 }
 
@@ -155,76 +231,4 @@ public class MainGUI {
 
 
 
-
-
-
-
-/*
-class ConsoleInput extends InputStream {
-	private JTextArea textArea;
-    private int next;
-
-    public ConsoleInput(JTextArea textArea) {
-        this.textArea = textArea;
-    }
-
-    @Override
-    public int read() throws IOException {
-        if (next < 0) {
-            return -1;
-        }
-        if (next == '\n') {
-            next = -1;
-            return '\r';
-        }
-        if (next == '\r') {
-            next = -1;
-            return '\n';
-        }
-        int result = next;
-        next = -1;
-        return result;
-    }
-
-    @Override
-    public int available() throws IOException {
-        return textArea.getDocument().getLength();
-    }
-
-    @Override
-    public synchronized void mark(int readlimit) {
-        // not supported
-    }
-
-    @Override
-    public synchronized void reset() throws IOException {
-        throw new IOException("mark/reset not supported");
-    }
-
-    @Override
-    public boolean markSupported() {
-        return false;
-    }
-
-    @Override
-    public int read(byte[] b, int off, int len) throws IOException {
-        if (b == null) {
-            throw new NullPointerException();
-        } else if (off < 0 || len < 0 || len > b.length - off) {
-            throw new IndexOutOfBoundsException();
-        } else if (len == 0) {
-            return 0;
-        }
-        if (next < 0) {
-            String text = textArea.getText();
-            if (text.length() == 0) {
-                return -1;
-            }
-            next = text.charAt(0);
-            textArea.replaceRange("", 0, 1);
-        }
-        b[off] = (byte) next;
-        return 1;
-    }
-}*/
 

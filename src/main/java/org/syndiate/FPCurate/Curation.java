@@ -1,10 +1,9 @@
 package org.syndiate.FPCurate;
 
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,40 +14,38 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import javax.imageio.ImageIO;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.text.similarity.LevenshteinDistance;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.syndiate.FPCurate.gui.MainWindow;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
+import org.syndiate.FPCurate.gui.main.MainGUI;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 
 
 
@@ -60,6 +57,15 @@ public class Curation {
 	private final File metaYAML;
 	private final File curFolder;
 	private final String curationId;
+	
+	private static final KeyAdapter requireInput = new KeyAdapter() {
+		@Override
+		public void keyPressed(KeyEvent e) {
+			if (e.getKeyCode() == KeyEvent.VK_ENTER && ((JTextField) e.getComponent()).getText().isEmpty()) {
+				e.consume();
+			}
+		}
+	};
 	
 	
 	public Curation() {
@@ -136,15 +142,12 @@ public class Curation {
 		String[] tags = tagsStr.split(";");
 		ArrayList<String> tagCats = new ArrayList<>();
 		TagElement[] elements = new Gson().fromJson(CommonMethods.getResource("tags.json"), TagElement[].class);
-//		List<TagElement> elements = (List<TagElement>) CommonMethods.parseJSONStr(CommonMethods.getResource("tags.json"));
-//		List<TagElement> elements = new Gson().fromJson(CommonMethods.getResource("tags.json"), new TypeToken<List<TagElement>>() {}.getType());
 		
 		
 		for (String tag : tags) {
 			
 			int oldLength = tagCats.size();
-			
-			
+
 			for (TagElement element : elements) {
 				
 				if (!element.getAliases().contains(tag.trim())) {
@@ -154,12 +157,13 @@ public class Curation {
 				break;
 				
 			}
+
 			if (oldLength != tagCats.size()) {
 				continue;
 			}
 			
 			
-			System.out.println("A specific tag you entered, " + tag + " appears to be invalid. ");
+			System.out.println("A specific tag you entered, " + tag + " appears to be invalid.");
 			manualTagCats = true;
 			
 		}
@@ -241,13 +245,14 @@ public class Curation {
 	
 	
 	
+	
 	public static boolean isDupe(String gameTitle, String UUID) {
 		
 		
 		System.out.println("Possible dupe.");
         System.out.println("Title in question:" + gameTitle);
         	
-        String initialDecision = input("Do you want to terminate the curation (Y/N), or do you want more information on the curation in question (More)?").toLowerCase();
+        String initialDecision = MainGUI.input("Do you want to terminate the curation (Y/N), or do you want more information on the curation in question (More)?", requireInput).toLowerCase();
         	
         switch(initialDecision) {
         
@@ -263,7 +268,7 @@ public class Curation {
         		System.out.println("Metadata of the curation:");
         		System.out.println(curationData);
         		
-        		String finalDecision = input("Do you want to terminate the curation (Y/N)?").toLowerCase();
+        		String finalDecision = MainGUI.input("Do you want to terminate the curation (Y/N)?", requireInput).toLowerCase();
         		
         		
         		if (finalDecision.equals("y")) {
@@ -443,6 +448,10 @@ public class Curation {
 		
 		
 		
+		
+		
+		
+		
 		try {
 			metaYAML.createNewFile();
 		} catch (IOException ex) {
@@ -458,23 +467,52 @@ public class Curation {
 		
 		
 		
-		String launchCommand = input("Launch Command:");
-		if (!launchCommand.startsWith("http://") && !launchCommand.startsWith("https://")) {
-	        launchCommand = "http://" + launchCommand;
-	    }
-		try {
-	        new URL(launchCommand);
-	    } catch (MalformedURLException e) {
-	        System.out.println("Invalid launch command. Please fix in meta.yaml.");
-	    }
 		
 		
 		
+		String launchCommand = MainGUI.input("Launch Command:", new KeyAdapter() {
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+				
+				if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+					return;
+				}
+				
+				JTextField field = ((JTextField) e.getComponent());
+				String text = field.getText();
+				if (text.isEmpty()) {
+					e.consume();
+					return;
+				}
+				
+				if (!text.startsWith("http://") && !text.startsWith("https://")) {
+					text = "http://" + text;
+				}
+
+				
+				String[] schemes = {"http"};
+				UrlValidator urlValidator = new UrlValidator(schemes);
+
+				if (!urlValidator.isValid(text)) {
+					System.out.println("Invalid launch command.");
+					e.consume();
+					return;
+				}
+				
+				
+				
+				field.setText(text);
+				return;
+				
+				
+				
+			}
+		});
+
 		
 		File lcDir = new File(this.curFolder + "/content/" + launchCommand.replaceAll("//|http|https|:|\\/\\/|/g", ""));
 		new File(lcDir.getParent()).mkdirs();
-		
-		
 		
 		try {
 			Files.move(Paths.get(swfPath.toURI()), Paths.get(lcDir.toURI()));
@@ -486,7 +524,8 @@ public class Curation {
 		
 		
 		
-		String title = input("Title:");
+		
+		String title = MainGUI.input("Title:", requireInput);
 		System.out.println("Checking for dupes...");
 		
 		
@@ -499,13 +538,13 @@ public class Curation {
 		
 		
 		writeMeta("Title", title);
-		writeMeta("Alternate Titles", input("Alternate Titles:"));
+		writeMeta("Alternate Titles", MainGUI.input("Alternate Titles:", null));
 		
 		
 		
 		
 		
-		String curType = input("Game or animation? (G/A)").toLowerCase();
+		String curType = MainGUI.input("Game or animation? (G/A)", null).toLowerCase();
 		switch (curType.toLowerCase()) {
 			case "arcade":
 			case "g":
@@ -525,41 +564,80 @@ public class Curation {
 		
 		
 		
-		writeMeta("Series", input("Series:"));
-		writeMeta("Developer", input("Developer (separate with semicolons):"));
-		writeMeta("Publisher", input("Publisher (separate with semicolons):"));
-		
-		String playMode = input("Play mode (s - single player, c - cooperative, m - multiplayer):");
-		switch (playMode.toLowerCase()) {
-			case "single player":
-			case "s":
-				writeMeta("Play Mode", "Single Player");
-				break;
-			case "cooperative":
-			case "c":
-				writeMeta("Play Mode", "Cooperative");
-				break;
-			case "multiplayer":
-			case "m":
-				writeMeta("Play Mode", "Multiplayer");
-				break;
-			default:
-				System.out.println("Invalid option entered. Defaulting to single player.");
-				writeMeta("Play Mode", "Single Player");
-				break;
-		}
+		writeMeta("Series", MainGUI.input("Series:", null));
+		writeMeta("Developer", CommonMethods.correctSeparators(MainGUI.input("Developer (separate with semicolons):", null), ";"));
+		writeMeta("Publisher", CommonMethods.correctSeparators(MainGUI.input("Publisher (separate with semicolons):", null), ";"));
 		
 		
 		
+		String playMode = MainGUI.input("Play mode (separate with semicolons, s - single player, m - multiplayer):", new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				
+				if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+					return;
+				}
+				
+				JTextField field = ((JTextField) e.getComponent());
+				String text = field.getText();
+				if (text.isEmpty()) {
+					e.consume();
+					return;
+				}
+				
+				text = CommonMethods.correctSeparators(text.replaceAll("s", "Single Player").replaceAll("m", "Multiplayer"), ";");
+				
+				for (String mode : text.split(";")) {
+					
+					if (!mode.equals("Single Player") && !mode.equals("Multiplayer")) {
+						System.out.println("You have inputted an invalid play mode.");
+						e.consume();
+						return;
+					}
+					
+				}
+				
+				field.setText(text);
+				
+				
+			}
+		});
+		writeMeta("Play Mode", playMode);
 		
 		
-		writeMeta("Release Date", input("Release Date:"));
-		writeMeta("Version", input("Version:"));
+		
+		
+		
+		writeMeta("Release Date", MainGUI.input("Release Date:", new KeyAdapter() {
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+			
+				if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+					return;
+				}
+			
+				JTextField field = ((JTextField) e.getComponent());
+				String text = field.getText();
+				if (text.isEmpty()) {
+					return;
+				}
+			
+				
+				if (!CommonMethods.isValidDate(text)) {
+					System.out.println("Invalid date.");
+					e.consume();
+					return;
+				}
+			
+			}
+		}));
+		writeMeta("Version", MainGUI.input("Version:", null));
 		
 		
 		
 		
-		String langs = input("Languages (separate with semicolons:");
+		String langs = CommonMethods.correctSeparators(MainGUI.input("Languages (separate with semicolons):", null), ";");
 		if (langs.equals("")) {
 			System.out.println("No languages entered. Defaulting to en.");
 			writeMeta("Languages", "en");
@@ -571,39 +649,16 @@ public class Curation {
 		
 		
 		
-		/*
-		String extreme = input("Extreme (Y/N):");
-		switch (extreme.toLowerCase()) {
-			case "yes":
-			case "y":
-				writeMeta("Extreme", "Yes");
-				break;
-			case "no":
-			case "n":
-				writeMeta("Extreme", "No");
-				break;
-			default:
-				System.out.println("Invalid option entered. Defaulting to no.");
-				writeMeta("Extreme", "No");
-				break;
-		}*/
-		
-		
-		
-		
-		
-		String tags = input("Tags (separate with semicolon):");
-		if (tags.equals("")) {
-			System.out.println("Warning: No tags entered. If this was a mistake, please fix it directly in the meta.yaml file.");
-		}
+		String tags = CommonMethods.correctSeparators(MainGUI.input("Tags (separate with semicolons):", requireInput), ";");
 		writeMeta("Tags", tags);
+		
 		
 		
 		System.out.println("Generating tag categories...");
 		String tagCats = Curation.generateTagCats(tags);
 		
 		if (tagCats.equals("")) {
-			writeMeta("Tag Categories", input("Tag Categories:"));
+			writeMeta("Tag Categories", MainGUI.input("Tag Categories:", requireInput));
 		} else {
 			writeMeta("Tag Categories", tagCats);
 		}
@@ -614,9 +669,18 @@ public class Curation {
 		
 		
 		
-		String src = input("Source:");
+		String src = MainGUI.input("Source:", requireInput);
 		if (src.equals("")) {
-			System.out.println("Warning: No source entered. If this was a mistake, please fix it directly in the meta.yaml file.");
+			System.out.println("Warning: No source entered. If this was a mistake, please fix it in meta.yaml.");
+		} else {
+			
+			String[] schemes = {"http"};
+			UrlValidator urlValidator = new UrlValidator(schemes);
+
+			if (!urlValidator.isValid(src)) {
+				System.out.println("Warning: Source is an invalid URL. If this was a mistake, please fix it in meta.yaml.");
+			}
+			
 		}
 		writeMeta("Source", src);
 		writeMeta("Platform", "Flash");
@@ -630,16 +694,46 @@ public class Curation {
 		
 		
 		
-		String status = input("Status (separate with semicolons, p - playable, pa - partial, h - hacked):")
-				.replaceAll("pa",  "Partial")
-				.replaceAll("h", "Hacked")
-				.replaceAll("p", "Playable");
+		String status = MainGUI.input("Status (separate with semicolons, p - playable, pa - partial, h - hacked):", new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				
+				if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+					return;
+				}
+				
+				JTextField field = ((JTextField) e.getComponent());
+				String text = field.getText();
+				if (text.isEmpty()) {
+					e.consume();
+					return;
+				}
+				
+				text = CommonMethods.correctSeparators(text.replaceAll("pa", "Partial").replaceAll("h", "Hacked").replaceAll("p", "Playable"), ";");
+				
+				for (String status : text.split(";")) {
+					
+					if (!status.equals("Partial") && !status.equals("Hacked") && !status.equals("Playable")) {
+						System.out.println("You have inputted an invalid status..");
+						e.consume();
+						return;
+					}
+					
+				}
+				
+				field.setText(text);
+				
+				
+			}
+		});
+		
 		if (status.equals("")) {
 			System.out.println("No status entered. Defaulting to playable.");
 			writeMeta("Status", "Playable");
 		} else {
 			writeMeta("Status", status);
 		}
+		
 		writeMeta("Application Path", "FPSoftware\\Flash\\flashplayer_32_sa.exe");
 		writeMeta("Launch Command", launchCommand);
 		
@@ -650,8 +744,8 @@ public class Curation {
 		
 		
 		
-		writeMeta("Game Notes", input("Game Notes:"));
-		writeMeta("Original Description", input("Original Description:"));
+		writeMeta("Game Notes", MainGUI.input("Game Notes:", null));
+		writeMeta("Original Description", MainGUI.input("Original Description:", null));
 		writeMeta("Curation Notes", "");
 		writeMeta("Mount Parameters", "");
 		writeMeta("Additional Applications", "{}");
@@ -659,7 +753,7 @@ public class Curation {
 		
 		
 		
-		String ssConfirm = input("Enter Yes/Y/[blank] to take a screenshot (PLEASE HAVE THE GAME OPEN!).");
+		String ssConfirm = MainGUI.input("Enter Yes/Y/[blank] to take a screenshot (PLEASE HAVE THE GAME OPEN!).", null);
 		BufferedImage ss = null;
 		switch (ssConfirm.toLowerCase()) {
 		
@@ -676,11 +770,15 @@ public class Curation {
 				break;
 				
 			}
+			default: {
+				System.out.println("Skipping screenshot. Be sure to manually add a screenshot to the curation.");
+			}
 				
 		}
 		
 		
-		input("Press enter to zip and close the curation.");
+		
+		MainGUI.input("Press enter to zip and close the curation.", null);
 		System.out.println("Zipping curation...");
 		
 		zipCuration();
@@ -691,11 +789,6 @@ public class Curation {
 
 		
 	}
-	
-	
-	
-	
-	
 
 
 
@@ -704,58 +797,6 @@ public class Curation {
 
 
 
-
-
-
-
-
-	private static String input(String prompt) {
-		
-		CompletableFuture<String> future = new CompletableFuture<>();
-
-		
-	    SwingUtilities.invokeLater(() -> {
-
-	        
-	    	JPanel row = new JPanel();
-	    	row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
-	    	row.setBackground(new Color(255, 255, 255));
-	    	row.setAlignmentX(Component.LEFT_ALIGNMENT);
-	    	
-	    	
-	        JLabel label = new JLabel(prompt);
-	        label.setPreferredSize(new Dimension(100, 20));
-
-	        JTextField field = new JTextField();
-	        field.addActionListener((ActionEvent e) -> {
-	            future.complete(field.getText());
-	        });
-	        
-	        Dimension textFieldSize = new Dimension(235, 25);
-	        field.setMaximumSize(textFieldSize);
-	        field.setPreferredSize(textFieldSize);
-	        
-	        
-	        row.add(label);
-	        row.add(field);
-	        row.add(Box.createRigidArea(new Dimension(0, 10)));
-	        MainWindow.addComponent(row);
-	        field.requestFocusInWindow();
-
-	        
-	    });
-
-	    
-	    try {
-	        return future.get();
-	    } catch (InterruptedException | ExecutionException e) {
-	        new ErrorDialog(e);
-	    }
-	    
-
-	    return "";
-		
-	}
 	
 	
 	
@@ -776,7 +817,8 @@ public class Curation {
 
 
 
-//record TagElement(ArrayList<String> aliases, String category) {}
+//record TagElement(String[] aliases, String category) {}
+// i would have used records, but due to all fields in a record being final, well...
 class TagElement {
 	private ArrayList<String> aliases;
 	private String category;
