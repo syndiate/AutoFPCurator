@@ -18,6 +18,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,18 +126,49 @@ public class Curation {
 	
 	
 	
+	
+	
+	
+	
 	public static String generateTagCats(String tagsStr) {
 		
+		boolean manualTagCats = false;
 		String[] tags = tagsStr.split(";");
-		List<TagElement> elements = new Gson().fromJson(CommonMethods.getResource("tags.json"), new TypeToken<List<TagElement>>() {}.getType());
+		ArrayList<String> tagCats = new ArrayList<>();
+		TagElement[] elements = new Gson().fromJson(CommonMethods.getResource("tags.json"), TagElement[].class);
+//		List<TagElement> elements = (List<TagElement>) CommonMethods.parseJSONStr(CommonMethods.getResource("tags.json"));
+//		List<TagElement> elements = new Gson().fromJson(CommonMethods.getResource("tags.json"), new TypeToken<List<TagElement>>() {}.getType());
+		
 		
 		for (String tag : tags) {
 			
-			// TODO
-			return "";
+			int oldLength = tagCats.size();
+			
+			
+			for (TagElement element : elements) {
+				
+				if (!element.getAliases().contains(tag.trim())) {
+					continue;
+				}
+				tagCats.add(element.getCategory());
+				break;
+				
+			}
+			if (oldLength != tagCats.size()) {
+				continue;
+			}
+			
+			
+			System.out.println("A specific tag you entered, " + tag + " appears to be invalid. ");
+			manualTagCats = true;
 			
 		}
-		return "";
+		
+		if (manualTagCats == true) {
+			return "";
+		}
+		
+		return String.join("; ", tagCats);
 		
 	}
 	
@@ -570,6 +602,12 @@ public class Curation {
 		System.out.println("Generating tag categories...");
 		String tagCats = Curation.generateTagCats(tags);
 		
+		if (tagCats.equals("")) {
+			writeMeta("Tag Categories", input("Tag Categories:"));
+		} else {
+			writeMeta("Tag Categories", tagCats);
+		}
+		
 		
 		
 		
@@ -616,7 +654,7 @@ public class Curation {
 		writeMeta("Original Description", input("Original Description:"));
 		writeMeta("Curation Notes", "");
 		writeMeta("Mount Parameters", "");
-		writeMeta("Additional Applications", new Object());
+		writeMeta("Additional Applications", "{}");
 		
 		
 		
@@ -738,4 +776,20 @@ public class Curation {
 
 
 
-record TagElement(String[] aliases, String category) {}
+//record TagElement(ArrayList<String> aliases, String category) {}
+class TagElement {
+	private ArrayList<String> aliases;
+	private String category;
+	
+	public TagElement(ArrayList<String> aliases, String category) {
+		this.aliases = aliases;
+		this.category = category;
+	}
+	
+	public ArrayList<String> getAliases() {
+		return aliases;
+	}
+	public String getCategory() {
+		return category;
+	}
+}
