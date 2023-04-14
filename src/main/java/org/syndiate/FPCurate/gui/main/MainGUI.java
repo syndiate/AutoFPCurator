@@ -24,13 +24,12 @@ import javax.swing.SwingUtilities;
 
 import org.syndiate.FPCurate.CommonMethods;
 import org.syndiate.FPCurate.I18N;
-import org.syndiate.FPCurate.gui.MainWindow;
-import org.syndiate.FPCurate.gui.SettingsWindow;
 import org.syndiate.FPCurate.gui.common.CommonGUI;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmDialog;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmationListener;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 import org.syndiate.FPCurate.gui.common.dialog.GenericDialog;
+import org.syndiate.FPCurate.gui.settings.SettingsWindow;
 
 
 

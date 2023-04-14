@@ -1,4 +1,4 @@
-package org.syndiate.FPCurate.gui.preferences;
+package org.syndiate.FPCurate.gui.settings.preferences;
 
 import java.awt.GridLayout;
 import java.util.ArrayList;
@@ -10,8 +10,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.syndiate.FPCurate.I18N;
-import org.syndiate.FPCurate.gui.SettingsWindow;
 import org.syndiate.FPCurate.gui.common.SettingsGUI;
+import org.syndiate.FPCurate.gui.settings.SettingsWindow;
 
 public class GeneralPrefs extends JPanel {
 
@@ -24,6 +24,9 @@ public class GeneralPrefs extends JPanel {
 	public GeneralPrefs() {
 		
 		this.setLayout(new GridLayout(1, 2));
+//		this.setLayout(new GridBagLayout());
+	      
+	      
 		
 		Map<String, String> languages = I18N.getStrings("settings/general/languages");
 		Map<String, String> generalMenuStrs = I18N.getStrings("settings/general");

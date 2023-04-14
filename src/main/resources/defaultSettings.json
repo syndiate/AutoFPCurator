@@ -1,3 +1,19 @@
 { 
-	"globalLanguage": "en"
+	"globalLanguage": "en",
+	"lcDirDefOff": "false",
+	"libraryDefOff": "true",
+	"seriesDefOff": "true",
+	"devDefOff": "true",
+	"publishDefOff": "true",
+	"modeDefOff": "true",
+	"releaseDefOff": "true",
+	"verDefOff": "true",
+	"langDefOff": "true",
+	"tagsDefOff": "true",
+	"srcDefOff": "true",
+	"statusDefOff": "true",
+	"gameNotesDefOff": "true",
+	"descDefOff": "true",
+	"ssDefOff": "true",
+	"promptZipDefOff": "true"
 }

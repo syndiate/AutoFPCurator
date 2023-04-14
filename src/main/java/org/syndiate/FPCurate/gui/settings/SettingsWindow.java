@@ -1,4 +1,4 @@
-package org.syndiate.FPCurate.gui;
+package org.syndiate.FPCurate.gui.settings;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -17,7 +17,8 @@ import org.syndiate.FPCurate.I18N;
 import org.syndiate.FPCurate.SettingsManager;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmDialog;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmationListener;
-import org.syndiate.FPCurate.gui.preferences.*;
+import org.syndiate.FPCurate.gui.main.MainWindow;
+import org.syndiate.FPCurate.gui.settings.preferences.*;
 
 
 
@@ -29,8 +30,7 @@ public class SettingsWindow extends JFrame {
 	private static final long serialVersionUID = 3875324643848537471L;
 	private static final Map<String, String> queuedSettings = new HashMap<>();
 	private static final ArrayList<String> restartSettings = new ArrayList<String>(Arrays.asList("globalLanguage"));
-	
-	
+
 	
 
 	public SettingsWindow() {
@@ -50,13 +50,10 @@ public class SettingsWindow extends JFrame {
         
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setFocusable(false);
-
-        
-
 		{
 			tabbedPane.addTab(settingsMenuStrs.get("generalTab"), new GeneralPrefs());
 			tabbedPane.addTab(settingsMenuStrs.get("pathsTab"), new Paths());
-//			tabbedPane.addTab(settingsMenuStrs.get("curationTab"), new CurationPrefs());
+			tabbedPane.addTab(settingsMenuStrs.get("curationTab"), new CurationPrefs());
 			this.add(tabbedPane, BorderLayout.NORTH);
 		}
         
@@ -100,11 +97,17 @@ public class SettingsWindow extends JFrame {
 		
 
 		buttonPane.add(cancelButton);
+		
+//		getContentPane().add(list, BorderLayout.NORTH);
+		getContentPane().add(tabbedPane, BorderLayout.CENTER);
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 		
 
         this.setVisible(true);
     }
+	
+	
+	
 	
 	
 	
@@ -118,6 +121,16 @@ public class SettingsWindow extends JFrame {
 		}
 		SettingsWindow.queuedSettings.put(key, value);
 	}
+	
+	public static void queueSetting(String key, boolean value) {
+		SettingsWindow.queueSetting(key, String.valueOf(value));
+	}
+	
+	public static void unqueueSetting(String key) {
+		SettingsWindow.queuedSettings.remove(key);
+	}
+	
+	
 	
 	
 	

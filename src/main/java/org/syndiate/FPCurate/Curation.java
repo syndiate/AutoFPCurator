@@ -13,15 +13,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -33,15 +27,14 @@ import javax.swing.JTextField;
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.syndiate.FPCurate.gui.MainWindow;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 import org.syndiate.FPCurate.gui.main.MainGUI;
+import org.syndiate.FPCurate.gui.main.MainWindow;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -57,6 +50,7 @@ public class Curation {
 	private final File metaYAML;
 	private final File curFolder;
 	private final String curationId;
+
 	
 	private static final KeyAdapter requireInput = new KeyAdapter() {
 		@Override
@@ -66,6 +60,8 @@ public class Curation {
 			}
 		}
 	};
+	
+	public static final String[] lcProtocols = {"http"};
 	
 	
 	public Curation() {
@@ -637,7 +633,41 @@ public class Curation {
 		
 		
 		
-		String langs = CommonMethods.correctSeparators(MainGUI.input("Languages (separate with semicolons):", null), ";");
+//		String langs = CommonMethods.correctSeparators(MainGUI.input("Languages (separate with semicolons):", null), ";");
+		String langs = MainGUI.input("Languages (separate wth semicolons):", new KeyAdapter() {
+			@SuppressWarnings("unchecked")
+			@Override
+			public void keyReleased(KeyEvent e) {
+				
+				if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+					return;
+				}
+				
+				JTextField field = ((JTextField) e.getComponent());
+				String text = field.getText();
+				if (text.isEmpty()) {
+					e.consume();
+					return;
+				}
+				
+				text = CommonMethods.correctSeparators(text, ";");
+				Map<String, String> langs = (Map<String, String>) CommonMethods.parseJSONStr(CommonMethods.getResource("langs.json"));
+				
+				for (String lang : text.split(";")) {
+					if (!langs.containsKey(lang)) {
+						System.out.println(lang + " is not a vald language.");
+						e.consume();
+						return;
+					}
+				}
+				
+				field.setText(text);
+				
+				
+			}
+		});
+		
+		
 		if (langs.equals("")) {
 			System.out.println("No languages entered. Defaulting to en.");
 			writeMeta("Languages", "en");
@@ -714,7 +744,7 @@ public class Curation {
 				for (String status : text.split(";")) {
 					
 					if (!status.equals("Partial") && !status.equals("Hacked") && !status.equals("Playable")) {
-						System.out.println("You have inputted an invalid status..");
+						System.out.println("You have inputted an invalid status.");
 						e.consume();
 						return;
 					}

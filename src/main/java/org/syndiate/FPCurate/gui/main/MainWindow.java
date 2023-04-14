@@ -1,4 +1,4 @@
-package org.syndiate.FPCurate.gui;
+package org.syndiate.FPCurate.gui.main;
 
 
 import java.awt.BorderLayout;
@@ -33,7 +33,6 @@ import org.syndiate.FPCurate.I18N;
 import org.syndiate.FPCurate.SettingsManager;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 import org.syndiate.FPCurate.gui.common.dialog.GenericDialog;
-import org.syndiate.FPCurate.gui.main.MainGUI;
 
 
 
