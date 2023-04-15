@@ -565,6 +565,11 @@ public class Curation {
 		
 		
 		
+		
+		
+		
+		
+		
 		String dev = SettingsManager.getSetting("devDefOff").equals("true") ? CommonMethods.correctSeparators(MainGUI.input("Developer (separate with semicolons):", null), ";")
 						: SettingsManager.getSetting("devDefault");
 		
@@ -576,6 +581,10 @@ public class Curation {
 		writeMeta("Series", MainGUI.input("Series:", null));
 		writeMeta("Developer", dev);
 		writeMeta("Publisher", publisher);
+		
+		
+		
+		
 		
 		
 		
@@ -626,6 +635,11 @@ public class Curation {
 		
 		
 		
+		
+		
+		
+		
+		
 		String releaseDate = "";
 		if (SettingsManager.getSetting("releaseDefOff").equals("true")) {
 			
@@ -660,6 +674,10 @@ public class Curation {
 		
 		String version = SettingsManager.getSetting("verDefOff").equals("true") ? MainGUI.input("Version:", null) : SettingsManager.getSetting("verDefault");
 		writeMeta("Version", version);
+		
+		
+		
+		
 		
 		
 		
@@ -712,6 +730,10 @@ public class Curation {
 		} else {
 			writeMeta("Languages", langs);
 		}
+		
+		
+		
+		
 		
 		
 		
@@ -809,7 +831,7 @@ public class Curation {
 					});
 
 		} else {
-			status = SettingsManager.getSetting("settingsDefault");
+			status = SettingsManager.getSetting("statusDefault").replaceAll("pa", "Partial").replaceAll("h", "Hacked").replaceAll("p", "Playable");
 		}
 		
 		
