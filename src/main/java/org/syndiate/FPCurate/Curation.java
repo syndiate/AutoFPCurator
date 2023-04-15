@@ -465,46 +465,49 @@ public class Curation {
 		
 		
 		
-		
-		String launchCommand = MainGUI.input("Launch Command:", new KeyAdapter() {
+		String launchCommand = "";
+		if (SettingsManager.getSetting("lcDirDefOff").equals("true")) {
 			
-			@Override
-			public void keyPressed(KeyEvent e) {
-				
-				if (e.getKeyCode() != KeyEvent.VK_ENTER) {
-					return;
-				}
-				
-				JTextField field = ((JTextField) e.getComponent());
-				String text = field.getText();
-				if (text.isEmpty()) {
-					e.consume();
-					return;
-				}
-				
-				if (!text.startsWith("http://") && !text.startsWith("https://")) {
-					text = "http://" + text;
-				}
+			launchCommand = MainGUI.input("Launch Command:", new KeyAdapter() {
 
-				
-				String[] schemes = {"http"};
-				UrlValidator urlValidator = new UrlValidator(schemes);
+				@Override
+				public void keyPressed(KeyEvent e) {
 
-				if (!urlValidator.isValid(text)) {
-					System.out.println("Invalid launch command.");
-					e.consume();
+					if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+						return;
+					}
+
+					JTextField field = ((JTextField) e.getComponent());
+					String text = field.getText();
+					if (text.isEmpty()) {
+						e.consume();
+						return;
+					}
+
+					if (!text.startsWith("http://") && !text.startsWith("https://")) {
+						text = "http://" + text;
+					}
+
+					String[] schemes = { "http" };
+					UrlValidator urlValidator = new UrlValidator(schemes);
+
+					if (!urlValidator.isValid(text)) {
+						System.out.println("Invalid launch command.");
+						e.consume();
+						return;
+					}
+
+					field.setText(text);
 					return;
+
 				}
-				
-				
-				
-				field.setText(text);
-				return;
-				
-				
-				
-			}
-		});
+			});
+			
+		} else {
+			launchCommand = SettingsManager.getSetting("lcDirDefault") + swfPath.getName();
+		}
+		
+		
 
 		
 		File lcDir = new File(this.curFolder + "/content/" + launchCommand.replaceAll("//|http|https|:|\\/\\/|/g", ""));
@@ -524,13 +527,10 @@ public class Curation {
 		String title = MainGUI.input("Title:", requireInput);
 		System.out.println("Checking for dupes...");
 		
-		
-		
-		
-		
 		if (Curation.dupeCheck(title)) {
 			 return;
 		}
+		
 		
 		
 		writeMeta("Title", title);
@@ -538,9 +538,12 @@ public class Curation {
 		
 		
 		
-		
-		
-		String curType = MainGUI.input("Game or animation? (G/A)", null).toLowerCase();
+		String curType = "";
+		if (SettingsManager.getSetting("libraryDefOff").equals("true")) {
+			curType = MainGUI.input("Game or animation? (G/A)", null).toLowerCase();
+		} else {
+			curType = SettingsManager.getSetting("libraryDefault");
+		}
 		switch (curType.toLowerCase()) {
 			case "arcade":
 			case "g":
@@ -560,113 +563,148 @@ public class Curation {
 		
 		
 		
+		
+		
+		String dev = SettingsManager.getSetting("devDefOff").equals("true") ? CommonMethods.correctSeparators(MainGUI.input("Developer (separate with semicolons):", null), ";")
+						: SettingsManager.getSetting("devDefault");
+		
+		String publisher = SettingsManager.getSetting("publishDefOff").equals("true") ? CommonMethods.correctSeparators(MainGUI.input("Publisher (separate with semicolons):", null), ";")
+						: SettingsManager.getSetting("publishDefault");
+		
+		
+		
 		writeMeta("Series", MainGUI.input("Series:", null));
-		writeMeta("Developer", CommonMethods.correctSeparators(MainGUI.input("Developer (separate with semicolons):", null), ";"));
-		writeMeta("Publisher", CommonMethods.correctSeparators(MainGUI.input("Publisher (separate with semicolons):", null), ";"));
+		writeMeta("Developer", dev);
+		writeMeta("Publisher", publisher);
 		
 		
 		
-		String playMode = MainGUI.input("Play mode (separate with semicolons, s - single player, m - multiplayer):", new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				
-				if (e.getKeyCode() != KeyEvent.VK_ENTER) {
-					return;
-				}
-				
-				JTextField field = ((JTextField) e.getComponent());
-				String text = field.getText();
-				if (text.isEmpty()) {
-					e.consume();
-					return;
-				}
-				
-				text = CommonMethods.correctSeparators(text.replaceAll("s", "Single Player").replaceAll("m", "Multiplayer"), ";");
-				
-				for (String mode : text.split(";")) {
-					
-					if (!mode.equals("Single Player") && !mode.equals("Multiplayer")) {
-						System.out.println("You have inputted an invalid play mode.");
-						e.consume();
-						return;
-					}
-					
-				}
-				
-				field.setText(text);
-				
-				
-			}
-		});
+		
+		String playMode = "";
+		if (SettingsManager.getSetting("modeDefOff").equals("true")) {
+
+			playMode = MainGUI.input("Play mode (separate with semicolons, s - single player, m - multiplayer):",
+					new KeyAdapter() {
+						@Override
+						public void keyReleased(KeyEvent e) {
+
+							if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+								return;
+							}
+
+							JTextField field = ((JTextField) e.getComponent());
+							String text = field.getText();
+							if (text.isEmpty()) {
+								e.consume();
+								return;
+							}
+
+							text = CommonMethods.correctSeparators(
+									text.replaceAll("s", "Single Player").replaceAll("m", "Multiplayer"), ";");
+
+							for (String mode : text.split(";")) {
+
+								if (!mode.equals("Single Player") && !mode.equals("Multiplayer")) {
+									System.out.println("You have inputted an invalid play mode.");
+									e.consume();
+									return;
+								}
+
+							}
+
+							field.setText(text);
+
+						}
+					});
+
+		} else {
+			playMode = SettingsManager.getSetting("modeDefault");
+		}
 		writeMeta("Play Mode", playMode);
 		
 		
 		
 		
 		
-		writeMeta("Release Date", MainGUI.input("Release Date:", new KeyAdapter() {
+		String releaseDate = "";
+		if (SettingsManager.getSetting("releaseDefOff").equals("true")) {
 			
-			@Override
-			public void keyReleased(KeyEvent e) {
-			
-				if (e.getKeyCode() != KeyEvent.VK_ENTER) {
-					return;
+			releaseDate = MainGUI.input("Release Date:", new KeyAdapter() {
+
+				@Override
+				public void keyReleased(KeyEvent e) {
+
+					if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+						return;
+					}
+
+					JTextField field = ((JTextField) e.getComponent());
+					String text = field.getText();
+					if (text.isEmpty()) {
+						return;
+					}
+
+					if (!CommonMethods.isValidDate(text)) {
+						System.out.println("Invalid date.");
+						e.consume();
+						return;
+					}
+
 				}
-			
-				JTextField field = ((JTextField) e.getComponent());
-				String text = field.getText();
-				if (text.isEmpty()) {
-					return;
-				}
-			
-				
-				if (!CommonMethods.isValidDate(text)) {
-					System.out.println("Invalid date.");
-					e.consume();
-					return;
-				}
-			
-			}
-		}));
-		writeMeta("Version", MainGUI.input("Version:", null));
+			});
+		} else {
+			releaseDate = SettingsManager.getSetting("releaseDefault");
+		}
+		writeMeta("Release Date", releaseDate);
+		
+		
+		String version = SettingsManager.getSetting("verDefOff").equals("true") ? MainGUI.input("Version:", null) : SettingsManager.getSetting("verDefault");
+		writeMeta("Version", version);
 		
 		
 		
 		
 //		String langs = CommonMethods.correctSeparators(MainGUI.input("Languages (separate with semicolons):", null), ";");
-		String langs = MainGUI.input("Languages (separate wth semicolons):", new KeyAdapter() {
-			@SuppressWarnings("unchecked")
-			@Override
-			public void keyReleased(KeyEvent e) {
-				
-				if (e.getKeyCode() != KeyEvent.VK_ENTER) {
-					return;
-				}
-				
-				JTextField field = ((JTextField) e.getComponent());
-				String text = field.getText();
-				if (text.isEmpty()) {
-					e.consume();
-					return;
-				}
-				
-				text = CommonMethods.correctSeparators(text, ";");
-				Map<String, String> langs = (Map<String, String>) CommonMethods.parseJSONStr(CommonMethods.getResource("langs.json"));
-				
-				for (String lang : text.split(";")) {
-					if (!langs.containsKey(lang)) {
-						System.out.println(lang + " is not a vald language.");
+		
+		String langs = "";
+		if (SettingsManager.getSetting("langDefOff").equals("true")) {
+
+			langs = MainGUI.input("Languages (separate wth semicolons):", new KeyAdapter() {
+				@SuppressWarnings("unchecked")
+				@Override
+				public void keyReleased(KeyEvent e) {
+
+					if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+						return;
+					}
+
+					JTextField field = ((JTextField) e.getComponent());
+					String text = field.getText();
+					if (text.isEmpty()) {
 						e.consume();
 						return;
 					}
+
+					text = CommonMethods.correctSeparators(text, ";");
+					Map<String, String> langs = (Map<String, String>) CommonMethods
+							.parseJSONStr(CommonMethods.getResource("langs.json"));
+
+					for (String lang : text.split(";")) {
+						if (!langs.containsKey(lang)) {
+							System.out.println(lang + " is not a vald language.");
+							e.consume();
+							return;
+						}
+					}
+
+					field.setText(text);
+
 				}
-				
-				field.setText(text);
-				
-				
-			}
-		});
-		
+			});
+
+		} else {
+			langs = SettingsManager.getSetting("langDefault");
+		}
 		
 		if (langs.equals("")) {
 			System.out.println("No languages entered. Defaulting to en.");
@@ -679,7 +717,8 @@ public class Curation {
 		
 		
 		
-		String tags = CommonMethods.correctSeparators(MainGUI.input("Tags (separate with semicolons):", requireInput), ";");
+		String tags = SettingsManager.getSetting("tagsDefOff").equals("true") ? CommonMethods.correctSeparators(MainGUI.input("Tags (separate with semicolons):", requireInput), ";")
+				: SettingsManager.getSetting("tagsDefault");
 		writeMeta("Tags", tags);
 		
 		
@@ -688,6 +727,7 @@ public class Curation {
 		String tagCats = Curation.generateTagCats(tags);
 		
 		if (tagCats.equals("")) {
+			System.out.println("No tag categories were generated.");
 			writeMeta("Tag Categories", MainGUI.input("Tag Categories:", requireInput));
 		} else {
 			writeMeta("Tag Categories", tagCats);
@@ -698,19 +738,26 @@ public class Curation {
 		
 		
 		
-		
-		String src = MainGUI.input("Source:", requireInput);
-		if (src.equals("")) {
-			System.out.println("Warning: No source entered. If this was a mistake, please fix it in meta.yaml.");
-		} else {
-			
-			String[] schemes = {"http"};
-			UrlValidator urlValidator = new UrlValidator(schemes);
+		String src = "";
+		if (SettingsManager.getSetting("srcDefOff").equals("true")) {
 
-			if (!urlValidator.isValid(src)) {
-				System.out.println("Warning: Source is an invalid URL. If this was a mistake, please fix it in meta.yaml.");
+			src = MainGUI.input("Source:", requireInput);
+			if (src.equals("")) {
+				System.out.println("Warning: No source entered. If this was a mistake, please fix it in meta.yaml.");
+			} else {
+
+				String[] schemes = { "http" };
+				UrlValidator urlValidator = new UrlValidator(schemes);
+
+				if (!urlValidator.isValid(src)) {
+					System.out.println(
+							"Warning: Source is an invalid URL. If this was a mistake, please fix it in meta.yaml.");
+				}
+
 			}
-			
+
+		} else {
+			src = SettingsManager.getSetting("srcDefault");
 		}
 		writeMeta("Source", src);
 		writeMeta("Platform", "Flash");
@@ -723,39 +770,48 @@ public class Curation {
 		
 		
 		
+		String status = "";
+		if (SettingsManager.getSetting("statusDefOff").equals("true")) {
+			
+			status = MainGUI.input("Status (separate with semicolons, p - playable, pa - partial, h - hacked):",
+					new KeyAdapter() {
+						@Override
+						public void keyReleased(KeyEvent e) {
+
+							if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+								return;
+							}
+
+							JTextField field = ((JTextField) e.getComponent());
+							String text = field.getText();
+							if (text.isEmpty()) {
+								e.consume();
+								return;
+							}
+
+							text = CommonMethods.correctSeparators(text.replaceAll("pa", "Partial")
+									.replaceAll("h", "Hacked").replaceAll("p", "Playable"), ";");
+
+							for (String status : text.split(";")) {
+
+								if (!status.equals("Partial") && !status.equals("Hacked")
+										&& !status.equals("Playable")) {
+									System.out.println("You have inputted an invalid status.");
+									e.consume();
+									return;
+								}
+
+							}
+
+							field.setText(text);
+
+						}
+					});
+
+		} else {
+			status = SettingsManager.getSetting("settingsDefault");
+		}
 		
-		String status = MainGUI.input("Status (separate with semicolons, p - playable, pa - partial, h - hacked):", new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				
-				if (e.getKeyCode() != KeyEvent.VK_ENTER) {
-					return;
-				}
-				
-				JTextField field = ((JTextField) e.getComponent());
-				String text = field.getText();
-				if (text.isEmpty()) {
-					e.consume();
-					return;
-				}
-				
-				text = CommonMethods.correctSeparators(text.replaceAll("pa", "Partial").replaceAll("h", "Hacked").replaceAll("p", "Playable"), ";");
-				
-				for (String status : text.split(";")) {
-					
-					if (!status.equals("Partial") && !status.equals("Hacked") && !status.equals("Playable")) {
-						System.out.println("You have inputted an invalid status.");
-						e.consume();
-						return;
-					}
-					
-				}
-				
-				field.setText(text);
-				
-				
-			}
-		});
 		
 		if (status.equals("")) {
 			System.out.println("No status entered. Defaulting to playable.");
@@ -763,6 +819,10 @@ public class Curation {
 		} else {
 			writeMeta("Status", status);
 		}
+		
+		
+		
+		
 		
 		writeMeta("Application Path", "FPSoftware\\Flash\\flashplayer_32_sa.exe");
 		writeMeta("Launch Command", launchCommand);
@@ -773,9 +833,11 @@ public class Curation {
 		
 		
 		
+		String gameNotes = SettingsManager.getSetting("gameNotesDefOff").equals("true") ? MainGUI.input("Game Notes:", null) : SettingsManager.getSetting("gameNotesDefault");
+		String desc = SettingsManager.getSetting("descDefOff").equals("true") ? MainGUI.input("Original Description:", null) : SettingsManager.getSetting("descDefault");
 		
-		writeMeta("Game Notes", MainGUI.input("Game Notes:", null));
-		writeMeta("Original Description", MainGUI.input("Original Description:", null));
+		writeMeta("Game Notes", gameNotes);
+		writeMeta("Original Description", desc);
 		writeMeta("Curation Notes", "");
 		writeMeta("Mount Parameters", "");
 		writeMeta("Additional Applications", "{}");
@@ -783,7 +845,9 @@ public class Curation {
 		
 		
 		
-		String ssConfirm = MainGUI.input("Enter Yes/Y/[blank] to take a screenshot (PLEASE HAVE THE GAME OPEN!).", null);
+		String ssConfirm = SettingsManager.getSetting("settingsDefOff").equals("true") ? MainGUI.input("Enter Yes/Y/[blank] to take a screenshot (PLEASE HAVE THE GAME OPEN!).", null)
+																					   : SettingsManager.getSetting("ssDefault");
+		
 		BufferedImage ss = null;
 		switch (ssConfirm.toLowerCase()) {
 		
@@ -807,8 +871,9 @@ public class Curation {
 		}
 		
 		
-		
-		MainGUI.input("Press enter to zip and close the curation.", null);
+		if (SettingsManager.getSetting("promptZipDefOff").equals("true")) {
+			MainGUI.input("Press enter to zip and close the curation.", null);
+		}
 		System.out.println("Zipping curation...");
 		
 		zipCuration();

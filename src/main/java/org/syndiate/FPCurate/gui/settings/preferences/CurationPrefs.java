@@ -5,7 +5,6 @@ import static java.util.Map.entry;
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ItemEvent;
-import java.awt.event.MouseEvent;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -16,15 +15,16 @@ import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.text.Document;
-import javax.swing.text.Element;
 
 import org.apache.commons.validator.routines.UrlValidator;
 import org.syndiate.FPCurate.CommonMethods;
 import org.syndiate.FPCurate.Curation;
-import org.syndiate.FPCurate.SettingsManager;
 import org.syndiate.FPCurate.gui.common.SettingsGUI;
 import org.syndiate.FPCurate.gui.settings.DocumentChangeListener;
 import org.syndiate.FPCurate.gui.settings.SettingsWindow;
+
+
+
 
 public class CurationPrefs extends JPanel {
 
@@ -79,13 +79,14 @@ public class CurationPrefs extends JPanel {
 		
 		
 		JTextField field;
+		CurPrefsListener listener = null;
 //		JTextField field = SettingsGUI.createTextField(entry.getKey());
 		
 		switch(id) {
 		
 			case "lcDirDefault": {
 				
-				CurPrefsListener listener = new CurPrefsListener() {
+				listener = new CurPrefsListener() {
 					public void update(Document doc) {
 						JTextField field = (JTextField) doc.getProperty("parent");
 //					JCheckBox box = (JCheckBox) e.getDocument().getProperty("checkBox");
@@ -109,10 +110,6 @@ public class CurationPrefs extends JPanel {
 					}
 				};
 				
-				field = SettingsGUI.createTextField(id, listener);
-				field.getDocument().putProperty("checkBox", box);
-				listener.update(field.getDocument());
-				
 				break;
 				
 			}
@@ -120,7 +117,7 @@ public class CurationPrefs extends JPanel {
 			
 			case "libraryDefault": {
 				
-				CurPrefsListener listener = new CurPrefsListener() {
+				listener = new CurPrefsListener() {
 					public void update(Document doc) {
 						
 						JTextField field = (JTextField) doc.getProperty("parent");
@@ -138,9 +135,6 @@ public class CurationPrefs extends JPanel {
 						}
 					}
 				};
-				field = SettingsGUI.createTextField(id, listener);
-				field.getDocument().putProperty("checkBox", box);
-				listener.update(field.getDocument());
 				
 				break;
 				
@@ -148,7 +142,7 @@ public class CurationPrefs extends JPanel {
 			
 			case "modeDefault": {
 				
-				CurPrefsListener listener = new CurPrefsListener() {
+				listener = new CurPrefsListener() {
 					public void update(Document doc) {
 						
 						JTextField field = (JTextField) doc.getProperty("parent");
@@ -165,9 +159,6 @@ public class CurationPrefs extends JPanel {
 						}
 					}
 				};
-				field = SettingsGUI.createTextField(id, listener);
-				field.getDocument().putProperty("checkBox", box);
-				listener.update(field.getDocument());
 				
 				break;
 				
@@ -175,7 +166,7 @@ public class CurationPrefs extends JPanel {
 			
 			case "langDefault": {
 				
-				CurPrefsListener listener = new CurPrefsListener() {
+				listener = new CurPrefsListener() {
 					@SuppressWarnings("unchecked")
 					public void update(Document doc) {
 						
@@ -196,9 +187,6 @@ public class CurationPrefs extends JPanel {
 						
 					}
 				};
-				field = SettingsGUI.createTextField(id, listener);
-				field.getDocument().putProperty("checkBox", box);
-				listener.update(field.getDocument());
 				
 				break;
 				
@@ -206,7 +194,7 @@ public class CurationPrefs extends JPanel {
 			
 			case "statusDefault": {
 				
-				CurPrefsListener listener = new CurPrefsListener() {
+				listener = new CurPrefsListener() {
 					public void update(Document doc) {
 						
 						JTextField field = (JTextField) doc.getProperty("parent");
@@ -224,19 +212,39 @@ public class CurationPrefs extends JPanel {
 						
 					}
 				};
-				field = SettingsGUI.createTextField(id, listener);
-				field.getDocument().putProperty("checkBox", box);
-				listener.update(field.getDocument());
 				
 				break;
 				
 			}
 			
 			
+			case "releaseDefault": {
+				
+				listener = new CurPrefsListener() {
+					public void update(Document doc) {
+						
+						JTextField field = (JTextField) doc.getProperty("parent");
+						String fieldId = (String) doc.getProperty("settingsId");
+						String fieldText = field.getText().toLowerCase();
+						
+						if (!CommonMethods.isValidDate(fieldText)) {
+							invalidFieldBorder(field);
+							return;
+						}
+						
+						SettingsWindow.queueSetting(fieldId, fieldText);
+						normalFieldBorder(field);
+					}
+				};
+				
+				break;
+			}
+			
+			
 			case "promptZipDefault":
 			case "ssDefault": {
 				
-				CurPrefsListener listener = new CurPrefsListener() {
+				listener = new CurPrefsListener() {
 					public void update(Document doc) {
 						
 						JTextField field = (JTextField) doc.getProperty("parent");
@@ -254,20 +262,36 @@ public class CurationPrefs extends JPanel {
 						
 					}
 				};
-				field = SettingsGUI.createTextField(id, listener);
-				field.getDocument().putProperty("checkBox", box);
-				listener.update(field.getDocument());
+				
 				
 				break;
 				
 			}
-
-			default:
-				field = SettingsGUI.createTextField(id);
-				field.setEnabled(!box.isSelected());
-				box.addItemListener((ItemEvent e) -> field.setEnabled(!box.isSelected()));
-				field.getDocument().putProperty("checkBox", box);
 				
+				
+		}
+		
+		
+		
+		
+		if (listener == null) {
+			
+			field = SettingsGUI.createTextField(id);
+			box.putClientProperty("field", field);
+			field.setEnabled(!box.isSelected());
+			
+			box.addItemListener((ItemEvent e) -> {
+				JCheckBox cb = (JCheckBox) e.getSource();
+				JTextField correspondingField = (JTextField) cb.getClientProperty("field");
+				correspondingField.setEnabled(!box.isSelected());
+			});
+			
+			field.getDocument().putProperty("checkBox", box);
+			
+		} else {
+			field = SettingsGUI.createTextField(id, listener);
+			field.getDocument().putProperty("checkBox", box);
+			listener.update(field.getDocument());
 		}
 		
 //		field.setEnabled(!box.isSelected());
@@ -278,6 +302,8 @@ public class CurationPrefs extends JPanel {
 		this.add(new JLabel(entry.getValue()));
 		this.add(field);
 	}
+	
+	
 	
 	
 	
