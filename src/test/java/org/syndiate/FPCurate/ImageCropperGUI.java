@@ -1,10 +1,16 @@
 package org.syndiate.FPCurate;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
 import javax.imageio.ImageIO;
@@ -29,11 +35,37 @@ public class ImageCropperGUI extends JFrame implements ActionListener {
     private JButton openButton, cropButton;
     private JTextField xField, yField, widthField, heightField;
     private BufferedImage originalImage, croppedImage;
+    
+    
+    private Rectangle selection;
+    private Point clickPoint;
+
+    private JPanel selectionPanel = new JPanel() {
+		private static final long serialVersionUID = 1018215546131845085L;
+
+		@Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (selection != null) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setColor(new Color(0, 0, 0, 64));
+                g2d.fill(selection);
+                g2d.setColor(Color.BLACK);
+                g2d.draw(selection);
+                g2d.dispose();
+            }
+        }
+    };
+    
+    
 
     public ImageCropperGUI() {
 
         mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
+        
+        
+        
 
         imageLabel = new JLabel();
         mainPanel.add(imageLabel, BorderLayout.CENTER);
@@ -72,6 +104,10 @@ public class ImageCropperGUI extends JFrame implements ActionListener {
         setTitle("Image Cropper");
         setSize(800, 600);
     }
+    
+    
+    
+    
 
     public static void main(String[] args) {
         ImageCropperGUI gui = new ImageCropperGUI();
@@ -90,6 +126,38 @@ public class ImageCropperGUI extends JFrame implements ActionListener {
 
                     // Display the loaded image in the imageLabel
                     imageLabel.setIcon(new ImageIcon(originalImage));
+                    
+                    
+                    mainPanel.add(selectionPanel);
+                    selectionPanel.setOpaque(false);
+                    selectionPanel.addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mousePressed(MouseEvent e) {
+                            clickPoint = e.getPoint();
+                            selection = new Rectangle(clickPoint);
+                            selectionPanel.repaint();
+                        }
+                    });
+                    selectionPanel.addMouseMotionListener(new MouseAdapter() {
+                        @Override
+                        public void mouseDragged(MouseEvent e) {
+                            int x = Math.min(clickPoint.x, e.getX());
+                            int y = Math.min(clickPoint.y, e.getY());
+                            int width = Math.abs(clickPoint.x - e.getX());
+                            int height = Math.abs(clickPoint.y - e.getY());
+                            selection.setBounds(x, y, width, height);
+                            selectionPanel.repaint();
+                            
+                            xField.setText(String.valueOf(x));
+                            yField.setText(String.valueOf(y));
+                            widthField.setText(String.valueOf(width));
+                            heightField.setText(String.valueOf(height));
+                            
+                        }
+                    });
+                    
+                    
+                    
                 } catch (Exception ex) {
                     new ErrorDialog(ex);
                 }

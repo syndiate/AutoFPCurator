@@ -454,11 +454,6 @@ public class Curation {
 			new ErrorDialog(new IOException("Cannot create meta.yaml file. Perhaps AutoFPCurator doesn't have sufficient permissions to access the directory?", ex));
 		}
 		
-		try {
-			Desktop.getDesktop().open(swfPath);
-		} catch (IOException e) {
-			new ErrorDialog(new IOException("Cannot open SWF file. You can manually open it here: " + swfPath, e));
-		}
 
 		
 		
@@ -515,9 +510,20 @@ public class Curation {
 		
 		try {
 			Files.move(Paths.get(swfPath.toURI()), Paths.get(lcDir.toURI()));
+			swfPath = lcDir;
 		} catch (IOException e1) {
 			new ErrorDialog(new IOException("Failed to move the opened file. You must move it manually.", e1));
 		}
+		
+		
+		try {
+			Desktop.getDesktop().open(swfPath);
+		} catch (IOException e) {
+			new ErrorDialog(new IOException("Cannot open SWF file. You can manually open it here: " + swfPath, e));
+			
+		}
+		
+		
 		
 		
 		
@@ -609,11 +615,11 @@ public class Curation {
 							}
 
 							text = CommonMethods.correctSeparators(
-									text.replaceAll("s", "Single Player").replaceAll("m", "Multiplayer"), ";");
+									text.replaceAll("s", "Single Player").replaceAll("m", "Multiplayer").replaceAll("c", "Cooperative"), ";");
 
 							for (String mode : text.split(";")) {
 
-								if (!mode.equals("Single Player") && !mode.equals("Multiplayer")) {
+								if (!mode.equals("Single Player") && !mode.equals("Multiplayer") && !mode.equals("Cooperative")) {
 									System.out.println("You have inputted an invalid play mode.");
 									e.consume();
 									return;
@@ -627,7 +633,7 @@ public class Curation {
 					});
 
 		} else {
-			playMode = SettingsManager.getSetting("modeDefault");
+			playMode = SettingsManager.getSetting("modeDefault").replaceAll("s", "Single Player").replaceAll("m", "Multiplayer").replaceAll("c", "Cooperative");
 		}
 		writeMeta("Play Mode", playMode);
 		

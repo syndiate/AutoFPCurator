@@ -149,14 +149,20 @@ public class CurationPrefs extends JPanel {
 						String fieldId = (String) doc.getProperty("settingsId");
 						String fieldText = field.getText().toLowerCase();
 						
-						if (fieldText.equals("s") || fieldText.equals("m")
-							|| fieldText.equals("singleplayer")|| fieldText.equals("multiplayer")) {
-							SettingsWindow.queueSetting(fieldId, CommonMethods.correctSeparators(fieldText, ";"));
-							normalFieldBorder(field);
-						} else {
-//							SettingsWindow.unqueueSetting(fieldId);
-							invalidFieldBorder(field);
+						
+						for (String mode : fieldText.split(";")) {
+							
+							mode = mode.trim();
+							if (!mode.equals("s") && !mode.equals("m") && !mode.equals("c")
+									&& !mode.equals("singleplayer") && !mode.equals("multiplayer") && !mode.equals("cooperative")) {
+								invalidFieldBorder(field);
+								return;
+							}
+								
 						}
+						
+						SettingsWindow.queueSetting(fieldId, CommonMethods.correctSeparators(fieldText, ";"));
+						normalFieldBorder(field);
 					}
 				};
 				
@@ -177,7 +183,7 @@ public class CurationPrefs extends JPanel {
 						Map<String, String> langs = (Map<String, String>) CommonMethods.parseJSONStr(CommonMethods.getResource("langs.json"));
 						for (String lang : fieldText.split(";")) {
 							
-							if (!langs.containsKey(lang)) {
+							if (!langs.containsKey(lang.trim())) {
 								invalidFieldBorder(field);
 								return;
 							}
@@ -201,14 +207,19 @@ public class CurationPrefs extends JPanel {
 						String fieldId = (String) doc.getProperty("settingsId");
 						String fieldText = field.getText().toLowerCase();
 						
-						if (fieldText.equals("p") || fieldText.equals("pa") || fieldText.equals("h")
-							|| fieldText.equals("playable")|| fieldText.equals("partial") || fieldText.equals("hacked")) {
-							SettingsWindow.queueSetting(fieldId, CommonMethods.correctSeparators(fieldText, ";"));
-							normalFieldBorder(field);
-						} else {
-//							SettingsWindow.unqueueSetting(fieldId);
-							invalidFieldBorder(field);
+						
+						for (String status : fieldText.split(";")) {
+							
+							status = status.trim();
+							if (!status.equals("p") && !status.equals("pa") && !status.equals("h")
+									&& !status.equals("playable") && !status.equals("partial") && !status.equals("hacked")) {
+								invalidFieldBorder(field);
+								return;
+							}
+							
 						}
+						SettingsWindow.queueSetting(fieldId, CommonMethods.correctSeparators(fieldText, ";"));
+						normalFieldBorder(field);
 						
 					}
 				};
