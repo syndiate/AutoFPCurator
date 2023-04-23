@@ -51,7 +51,7 @@ public class Screenshot {
     }
 	
 	
-
+	// TODO: account for extraneous flash player window locations
 	public static BufferedImage takeScreenshot() {
 
 		HWND flashWindow = Screenshot.findWindowHandle("Adobe Flash Player");

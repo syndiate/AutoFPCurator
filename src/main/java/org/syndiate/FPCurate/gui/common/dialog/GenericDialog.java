@@ -1,10 +1,9 @@
 package org.syndiate.FPCurate.gui.common.dialog;
 
 import java.util.Map;
-
 import javax.swing.JOptionPane;
-
 import org.syndiate.FPCurate.I18N;
+
 
 public class GenericDialog {
 	

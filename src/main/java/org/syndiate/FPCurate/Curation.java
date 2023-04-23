@@ -4,7 +4,6 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
@@ -33,8 +32,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
-import org.syndiate.FPCurate.gui.main.MainGUI;
-import org.syndiate.FPCurate.gui.main.MainWindow;
+import org.syndiate.FPCurate.gui.cropper.Cropper;
+import org.syndiate.FPCurate.gui.main.*;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -458,8 +457,6 @@ public class Curation {
 		
 		
 		
-		
-		
 		String launchCommand = "";
 		if (SettingsManager.getSetting("lcDirDefOff").equals("true")) {
 			
@@ -509,6 +506,7 @@ public class Curation {
 		new File(lcDir.getParent()).mkdirs();
 		
 		try {
+			System.out.println("Moving SWF file inside curation...");
 			Files.move(Paths.get(swfPath.toURI()), Paths.get(lcDir.toURI()));
 			swfPath = lcDir;
 		} catch (IOException e1) {
@@ -517,11 +515,28 @@ public class Curation {
 		
 		
 		try {
+			System.out.println("Opening SWF file...");
 			Desktop.getDesktop().open(swfPath);
 		} catch (IOException e) {
 			new ErrorDialog(new IOException("Cannot open SWF file. You can manually open it here: " + swfPath, e));
 			
 		}
+		
+		
+		
+		String logoSS = MainGUI.input("Take a screenshot containing the logo? (Y/N):", requireInput);
+		switch (logoSS.toLowerCase()) {
+			case "y":
+				System.out.println("Opening image cropper...");
+				new Cropper(Screenshot.takeScreenshot(), new File(this.curFolder.getAbsolutePath() + "/logo.png"));
+				break;
+			default:
+				System.out.println("Not taking screenshot.");
+				break;
+		}
+		
+		
+		
 		
 		
 		
@@ -876,16 +891,14 @@ public class Curation {
 		String ssConfirm = SettingsManager.getSetting("settingsDefOff").equals("true") ? MainGUI.input("Enter Yes/Y/[blank] to take a screenshot (PLEASE HAVE THE GAME OPEN!).", null)
 																					   : SettingsManager.getSetting("ssDefault");
 		
-		BufferedImage ss = null;
+		
 		switch (ssConfirm.toLowerCase()) {
 		
 			case "yes":
 			case "y":
 			case "": {
-				
-				ss = Screenshot.takeScreenshot();
 				try {
-					ImageIO.write(ss, "png", new File(this.curFolder.getAbsolutePath() + "/ss.png"));
+					ImageIO.write(Screenshot.takeScreenshot(), "png", new File(this.curFolder.getAbsolutePath() + "/ss.png"));
 				} catch (IOException e) {
 					new ErrorDialog(e);
 				}
