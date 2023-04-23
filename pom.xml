@@ -3,7 +3,7 @@
 	<groupId>org.syndiate</groupId>
 	<artifactId>FPCurate</artifactId>
 	<version>1.1</version>
-	<name>Auto Flashpoint Curator</name>
+	<name>AutoFPCurator</name>
 	<description>A tool for automatically generating/zipping curations for Flashpoint.</description>
 	<properties>
 		<project.java.version>17</project.java.version>
@@ -61,6 +61,12 @@
 			<artifactId>jna-platform</artifactId>
 			<version>5.13.0</version>
 		</dependency>
+		<dependency>
+  			<groupId>junit</groupId>
+  			<artifactId>junit-dep</artifactId>
+  			<version>4.11</version>
+  			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<sourceDirectory>src/main/java/</sourceDirectory>
@@ -82,7 +88,7 @@
 				<configuration>
 					<archive>
             			<manifest>
-              				<mainClass>org.syndiate.FPCurate.main.MainWindow</mainClass>
+              				<mainClass>org.syndiate.FPCurate.gui.main.MainWindow</mainClass>
             			</manifest>
           			</archive>
 				</configuration>
@@ -120,7 +126,7 @@
 							</filters>
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>org.syndiate.FPCurate.main.MainWindow</mainClass>
+									<mainClass>org.syndiate.FPCurate.gui.main.MainWindow</mainClass>
 								</transformer>
 							</transformers>
 						</configuration>
