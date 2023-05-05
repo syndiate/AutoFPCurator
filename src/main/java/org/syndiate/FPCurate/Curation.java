@@ -2,17 +2,17 @@ package org.syndiate.FPCurate;
 
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,10 +21,10 @@ import java.util.UUID;
 
 import javax.imageio.ImageIO;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JTextField;
 
-import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
-import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -33,7 +33,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 import org.syndiate.FPCurate.gui.cropper.Cropper;
-import org.syndiate.FPCurate.gui.main.*;
+import org.syndiate.FPCurate.gui.main.MainGUI;
+import org.syndiate.FPCurate.gui.main.MainWindow;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -45,11 +46,15 @@ import com.google.gson.Gson;
 
 public class Curation {
 	
-	
+	/*
 	private final File metaYAML;
 	private final File curFolder;
 	private final String curationId;
-
+*/
+	private File metaYAML;
+	private File curFolder;
+	private String curationId;
+	
 	
 	private static final KeyAdapter requireInput = new KeyAdapter() {
 		@Override
@@ -63,6 +68,13 @@ public class Curation {
 	public static final String[] lcProtocols = {"http"};
 	
 	
+	
+	
+	
+	
+	
+	
+	
 	public Curation() {
 		
 		this.curationId = UUID.randomUUID().toString();
@@ -72,6 +84,39 @@ public class Curation {
 		this.metaYAML = new File(curFolder + "/meta.yaml");
 
 	}
+	
+	
+	
+	
+	
+	
+	
+	public Curation(File folder) {
+		
+		if (folder.isDirectory()) {
+			
+			Path dir = folder.toPath();
+			try {
+				
+				Files.walk(dir).forEach(path -> {
+					
+					File curFile = path.toFile();
+					if (!CommonMethods.getFileExtension(curFile).equals("swf")) {
+						return;
+					}
+					new Curation().init(curFile, false);
+					
+				});
+				
+				MainWindow.loadWelcomeScreen();
+				
+			} catch (IOException e) {
+				new ErrorDialog(e);
+			}
+			
+		}
+	}
+	
 	
 	
 	
@@ -293,58 +338,6 @@ public class Curation {
 	
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	private void compressFolder(File folder, SevenZOutputFile archive, String basePath) throws IOException {
-		
-        String archiveName = basePath + folder.getName() + File.separator;
-        SevenZArchiveEntry entry = archive.createArchiveEntry(folder, archiveName);
-        
-        archive.putArchiveEntry(entry);
-        archive.closeArchiveEntry();
-        
-
-        for (File file : folder.listFiles()) {
-        	
-			if (file.isDirectory()) {
-				compressFolder(file, archive, archiveName);
-				continue;
-			}
-			
-
-			String filePath = file.getAbsolutePath().substring(folder.getAbsolutePath().length() + 1);
-			String entryName = basePath + folder.getName() + File.separator + filePath;
-			entry = archive.createArchiveEntry(file, entryName);
-			archive.putArchiveEntry(entry);
-			
-
-			InputStream input = new FileInputStream(file);
-			byte[] buffer = new byte[1024];
-			int bytesRead;
-			while ((bytesRead = input.read(buffer)) > 0) {
-				archive.write(buffer, 0, bytesRead);
-			}
-			
-
-			archive.closeArchiveEntry();
-			input.close();
-
-		}
-        
-    }
 
 	
 	
@@ -366,33 +359,18 @@ public class Curation {
 			return;
 		}
 		
-		
 		if (endProgram) {
 			System.exit(0);
 		}
 		
-		MainWindow.loadWelcomeScreen();
 	}
 	
+
 	
 	
 	
 	
-	public void zipCuration() {
-		String outputPath = SettingsManager.getSetting("zippedCurations") + File.separator + curationId + ".7z";
-		
-		try {
-			SevenZOutputFile archive = new SevenZOutputFile(new File(outputPath));
-			compressFolder(curFolder, archive, "");
-			archive.close();
-		} catch (IOException e) {
-			new ErrorDialog(e);
-		}
-		
-	}
-	
-	
-	public void closeCuration() {
+	public void closeCuration(boolean shouldCloseCurationView) {
 		
 		try {
 			FileUtils.deleteDirectory(this.curFolder);
@@ -401,7 +379,9 @@ public class Curation {
 			new ErrorDialog(ex);
 		}
 		
-		MainWindow.loadWelcomeScreen();
+		if (shouldCloseCurationView) {
+			MainWindow.loadWelcomeScreen();
+		}
 		
 	}
 	
@@ -421,7 +401,7 @@ public class Curation {
 	
 	
 	
-	public void init(File swfPath) {
+	public void init(File swfPath, boolean shouldCloseCurationView) {
 		
 		
 		
@@ -441,6 +421,23 @@ public class Curation {
 		});
 		System.setOut(customOut);
 		
+		
+		
+		JMenu curationMenu = new JMenu("Curation");
+        
+        JMenuItem terminateCuration = new JMenuItem("Terminate/Delete Curation");
+        terminateCuration.addActionListener((ActionEvent e) -> closeCuration(true));
+        curationMenu.add(terminateCuration);
+        
+        JMenuItem saveCuration = new JMenuItem("Save Curation");
+        saveCuration.addActionListener((ActionEvent e) -> {
+        	// TODO: ADD INIT METHOD STOP
+        });
+        curationMenu.add(saveCuration);
+        
+        MainGUI.addMenuBarItem(curationMenu);
+		
+        
 		
 		
 		
@@ -519,7 +516,6 @@ public class Curation {
 			Desktop.getDesktop().open(swfPath);
 		} catch (IOException e) {
 			new ErrorDialog(new IOException("Cannot open SWF file. You can manually open it here: " + swfPath, e));
-			
 		}
 		
 		
@@ -917,11 +913,15 @@ public class Curation {
 		}
 		System.out.println("Zipping curation...");
 		
-		zipCuration();
+		
+		String out = SettingsManager.getSetting("zippedCurations") + "/" + this.curationId + ".7z";
+//		zipCuration();
+		CommonMethods.runExecutable("programs/7za.exe", "a \"" + out + "\" \"" + curFolder.getParentFile().getAbsolutePath() + "\"/*", true, true);
+		
 		
 		System.out.println("Zipped curation.");
 		System.out.println("Closing curation...");
-		closeCuration();
+		closeCuration(shouldCloseCurationView);
 
 		
 	}
@@ -940,7 +940,9 @@ public class Curation {
 	
 	
 	
-	
+	public String getCurationId() {
+		return this.curationId;
+	}
 	
 	public File getMetaYaml() {
 		return this.metaYAML;

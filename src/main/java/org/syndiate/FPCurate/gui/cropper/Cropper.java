@@ -63,11 +63,11 @@ public class Cropper {
 
 
     public static BufferedImage openImage(File file) throws IOException {
-        BufferedImage img;
+        BufferedImage img = ImageIO.read(file);
 //        String fileExtension = CommonMethods.getFileExtension(file);
-        img = ImageIO.read(file);
         int width = img.getWidth();
         int height = img.getHeight();
+        
         double aspectRatio = (double) width / height;
         if (width > height && width > 1000) {
             width = 1000;
@@ -76,8 +76,10 @@ public class Cropper {
             height = 1000;
             width = (int) (height * aspectRatio);
         }
+        
         Image scaledImage = img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
         BufferedImage scaledBI = new BufferedImage(scaledImage.getWidth(null), scaledImage.getHeight(null), BufferedImage.TYPE_INT_RGB);
+        
         Graphics2D g = scaledBI.createGraphics();
         g.drawImage(scaledImage, 0, 0, null);
         g.dispose();

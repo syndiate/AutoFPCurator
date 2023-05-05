@@ -22,13 +22,11 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
-import org.syndiate.FPCurate.CommonMethods;
 import org.syndiate.FPCurate.I18N;
 import org.syndiate.FPCurate.gui.common.CommonGUI;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmDialog;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmationListener;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
-import org.syndiate.FPCurate.gui.common.dialog.GenericDialog;
 import org.syndiate.FPCurate.gui.settings.SettingsWindow;
 
 
@@ -40,11 +38,14 @@ public class MainGUI {
 
 	
 	
-
+	
+	
+	private static JMenuBar menuBar;
+	
+	
 	/**
 	 * methods for main window init
 	 */
-	
 	public static JMenuBar initMenuBar() {
 		
 
@@ -53,7 +54,7 @@ public class MainGUI {
 		Map<String, String> dialogMsgs = I18N.getStrings("dialog/messages");
 		
 		
-		JMenuBar menuBar = new JMenuBar();
+		menuBar = new JMenuBar();
 		menuBar.setOpaque(true);
 		menuBar.setBackground(Color.WHITE);
 
@@ -61,6 +62,8 @@ public class MainGUI {
 
 		JMenu fileMenu = new JMenu(menuBarStrings.get("file"));
 
+		
+		
 		
 		
 		JMenuItem openItem = new JMenuItem(fileMenuItemStrings.get("open"));
@@ -76,26 +79,13 @@ public class MainGUI {
 			}
 
 			File selectedFile = fileChooser.getSelectedFile();
-			
-
-			if (selectedFile.isFile()) {
-
-				String fileExtension = CommonMethods.getFileExtension(selectedFile);
-				switch (fileExtension) {
-					case "swf":
-						MainWindow.handleSWF(selectedFile);
-						break;
-					case "zip":
-						MainWindow.handleZippedCuration(selectedFile);
-						break;
-					default:
-						new GenericDialog("File must be of type SWF or ZIP.");
-				}
-				return;
-			}
-			
-
+			MainWindow.handleFile(selectedFile);
 		});
+		
+		
+		
+		
+		
 		CommonGUI.setMenuItemShortcut(openItem, KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK);
 		fileMenu.add(openItem);
 		
@@ -153,6 +143,17 @@ public class MainGUI {
 		return menuBar;
 	}
 	
+	
+	
+	public static void addMenuBarItem(JMenu item) {
+		menuBar.add(item);
+		menuBar.revalidate();
+		menuBar.repaint();
+	}
+	
+	public static void removeMenuBarItem(JMenu item) {
+		menuBar.remove(item);
+	}
 	
 	
 	

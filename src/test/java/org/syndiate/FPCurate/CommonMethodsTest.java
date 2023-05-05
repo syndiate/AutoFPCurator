@@ -23,7 +23,7 @@ class CommonMethodsTest {
 	void resourceByte() {
 		
 	}
-	
+		
 	@Test
 	void nullStr() {
 		assertNull(CommonMethods.getResource(null));
@@ -93,5 +93,15 @@ class CommonMethodsTest {
 	void nullDate() {
 		assertFalse(CommonMethods.isValidDate(null));
 	}
+	
+	@Test
+	void runExe() {
+		
+		CommonMethods.runExecutable("programs/7za.exe", "a \"C:\\Users\\syndi\\Documents\\AutoFPCurator\\Working\\681eeb1e-4078-4015-b276-4c4841eee703.7z\"  \"C:\\Users\\syndi\\Documents\\AutoFPCurator\\Working\\681eeb1e-4078-4015-b276-4c4841eee703\\*\"", true, true);
+		if (!new File("C:\\Users\\syndi\\Documents\\AutoFPCurator\\Working\\681eeb1e-4078-4015-b276-4c4841eee703.7z").exists()) {
+			fail("Zip file was not created.");
+		}
+	}
+
 
 }

@@ -2,6 +2,7 @@ package org.syndiate.FPCurate;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -55,6 +56,72 @@ public class CommonMethods {
 	
 	
 	
+	public static void runExecutable(String filePath, String command, boolean commandLine, boolean wait) {
+		
+		InputStream inputStream = CommonMethods.class.getClassLoader().getResourceAsStream(filePath);
+		
+		File tempFile;
+		try {
+			tempFile = File.createTempFile("AutoFPCurator", ".exe");
+		} catch (IOException e) {
+			new ErrorDialog(e);
+			return;
+		}
+//		tempFile.deleteOnExit();
+		
+		
+
+		try (FileOutputStream outputStream = new FileOutputStream(tempFile)) {
+		    byte[] buffer = new byte[1024];
+		    int length;
+		    while ((length = inputStream.read(buffer)) > 0) {
+		        outputStream.write(buffer, 0, length);
+		    }
+		} catch (IOException e) {
+			new ErrorDialog(e);
+			return;
+		}
+		
+		
+		
+		ProcessBuilder processBuilder;
+		if (commandLine) {
+			processBuilder = new ProcessBuilder("cmd.exe", "/c", tempFile.getAbsolutePath() + " " + command);
+		} else {
+			processBuilder = new ProcessBuilder(tempFile.getAbsolutePath(), command);
+		}
+//		ProcessBuilder processBuilder = new ProcessBuilder(tempFile.getAbsolutePath(), command);
+		processBuilder.redirectErrorStream(true);
+		
+		
+		Process process;
+		try {
+			process = processBuilder.start();
+		} catch (IOException e) {
+			new ErrorDialog(e);
+			return;
+		}
+		
+		
+		if (!wait) {
+			return;
+		}
+		
+		try {
+			process.waitFor();
+		} catch (InterruptedException e) {
+			new ErrorDialog(e);
+		}
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	public static Object parseJSONStr(String json) {
@@ -71,6 +138,8 @@ public class CommonMethods {
 		return jsonObj;
 		
 	}
+	
+	
 	
 	
 	
@@ -95,32 +164,18 @@ public class CommonMethods {
 	
 	
 	
+	
+	
+	
 	// the string is split and joined to prevent any stray semicolons (separators) at the start or end of the value
 	public static String correctSeparators(String input, String delimiter) {
 		return String.join(delimiter + " ", new ArrayList<String>(Arrays.asList(input.split(delimiter))));
 	}
 	
 	
-	/*
-	public static boolean isValidDate(String date) {
-		
-		if (date == null) {
-			return false;
-		}
-		
-	    DateTimeFormatter formatter = new DateTimeFormatterBuilder()
-	            .appendPattern("uuuu-MM")
-	            .optionalStart()
-	            .appendPattern("-dd")
-	            .optionalEnd()
-	            .toFormatter();
-	    try {
-	        LocalDate parsedDate = LocalDate.parse(date, formatter);
-	        return date.equals(parsedDate.format(formatter));
-	    } catch (DateTimeParseException e) {
-	        return false;
-	    }
-	}*/
+	
+	
+	
 	public static boolean isValidDate(String date) {
 		
 		if (date == null) {

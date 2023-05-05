@@ -28,6 +28,7 @@ import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 
+import org.syndiate.FPCurate.CommonMethods;
 import org.syndiate.FPCurate.Curation;
 import org.syndiate.FPCurate.I18N;
 import org.syndiate.FPCurate.SettingsManager;
@@ -112,7 +113,6 @@ public class MainWindow {
 		label.setFont(label.getFont().deriveFont(14.0f));
 
 		
-		
 		MainWindow.mainPanel.add(label, new GridBagConstraints());
 		
 		frmAPCurator.add(mainPanel, BorderLayout.CENTER);
@@ -126,7 +126,59 @@ public class MainWindow {
 	
 	
 	
+	
+	
+	
+	
+	public static void handleFile(File selectedFile) {
+		
+		if (selectedFile.isFile()) {
+
+			String fileExtension = CommonMethods.getFileExtension(selectedFile);
+			switch (fileExtension) {
+				case "swf":
+					MainWindow.handleSWF(selectedFile);
+					break;
+				case "zip":
+					MainWindow.handleZippedCuration(selectedFile);
+					break;
+				default:
+					new GenericDialog("File must be of type SWF or ZIP.");
+			}
+			return;
+		}
+		
+		MainWindow.handleSWF(selectedFile);
+		
+		/*
+		Path dir = selectedFile.toPath();
+		try {
+			
+			Files.walk(dir).forEach(path -> {
+				
+				
+				File curFile = path.toFile();
+				if (CommonMethods.getFileExtension(curFile).equals("swf")) {
+					MainWindow.handleSWF(curFile);
+				}
+				
+			});
+		} catch (IOException e) {
+			new ErrorDialog(e);
+		}*/
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	public static void handleSWF(File swfFile) {
+		
 		
 		
 		String workingCurations = SettingsManager.getSetting("workingCurations");
@@ -180,9 +232,15 @@ public class MainWindow {
 	    SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
 		    @Override
 		    protected Void doInBackground() {
-		    	mainCuration = new Curation();
-		    	mainCuration.init(swfFile);
+		    	
+		    	if (swfFile.isDirectory()) {
+		    		new Curation(swfFile);
+		    	} else {
+		    		mainCuration = new Curation();
+		    		mainCuration.init(swfFile, true);
+		    	}
 		        return null;
+		        
 		    }
 
 		    @Override
