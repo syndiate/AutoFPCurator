@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 
+import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -23,7 +24,8 @@ public class GeneralPrefs extends JPanel {
 	
 	public GeneralPrefs() {
 		
-		this.setLayout(new GridLayout(1, 2));
+		int gridRows = CurationPrefs.getRows();
+		this.setLayout(new GridLayout(gridRows, 2));
 //		this.setLayout(new GridBagLayout());
 	      
 	      
@@ -64,6 +66,13 @@ public class GeneralPrefs extends JPanel {
 						}
 				)
 		);
+		
+		
+		// whitespace below the "real" components so that the "real" components don't take up the whole screen
+		// configure i to the amount of fields
+		for (int i = 1; i <= gridRows; i++) {
+			this.add(Box.createVerticalBox());
+		}
 //		this.add(new JLabel(generalMenuStrs.get("languageDropdown")));
 //		this.add(SettingsGUI.createDropdown("globalLanguage", )
 	}

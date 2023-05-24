@@ -1,24 +1,17 @@
 package org.syndiate.FPCurate.gui.common.dialog;
 
 import java.util.Map;
-
-import javax.swing.JDialog;
 import javax.swing.JOptionPane;
-
 import org.syndiate.FPCurate.I18N;
-import org.syndiate.FPCurate.gui.common.CommonGUI;
 
 
-public class ConfirmDialog extends JDialog {
+public class ConfirmDialog {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -6942330187588902749L;
 
-	/**
-	 * Launch the application.
-	 */
+	private static final Map<String, String> confirmDialogExStrs = I18N.getStrings("exceptions/dialog/confirm");
+	
+	
+	
 	public static void main(String[] args) {
 			
 		new ConfirmDialog("Sample dialog", new ConfirmationListener() {
@@ -39,13 +32,14 @@ public class ConfirmDialog extends JDialog {
 		Map<String, String> dialogStrs = I18N.getStrings("dialog");
 		
 		if (confirmationMsg == null) {
-			new ErrorDialog(new NullPointerException("Confirmation message is null"));
+			new ErrorDialog(new NullPointerException(confirmDialogExStrs.get("nullMessage")));
 			return;
 		}
 		if (listener == null) {
-			new ErrorDialog(new NullPointerException("Confirmation listener is null"));
+			new ErrorDialog(new NullPointerException(confirmDialogExStrs.get("nullListener")));
 			return;
 		}
+		
 		
 		int confirmationResult = JOptionPane.showConfirmDialog(
 			    null,
@@ -53,24 +47,14 @@ public class ConfirmDialog extends JDialog {
 			    dialogStrs.get("confirmationTitle"),
 			    JOptionPane.OK_CANCEL_OPTION
 			);
-
 		
+
 		if (confirmationResult == JOptionPane.OK_OPTION) {
-			CommonGUI.closeDialog(this);
 		    listener.onConfirm();
 		} else {
-			CommonGUI.closeDialog(this);
 		    listener.onCancel();
 		}
 		
-		
-		this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-		this.setVisible(true);
-	}
-	
-
-	public void closeDialog() {
-		this.dispose();
 	}
 
 }

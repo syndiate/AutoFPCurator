@@ -3,22 +3,26 @@ package org.syndiate.FPCurate.gui.cropper;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
+import org.syndiate.FPCurate.CommonMethods;
+import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
+
 
 // https://github.com/lewiswhitaker1/ImageCropToSquare/blob/main/src/me/lewis/cropper/Cropper.java
-public class Cropper {
+public class CropperManager {
 	
 	
 	private static JFrame cropperFrame = null;
 	
     public static void main(String[] args) {
     	try {
-			new Cropper(new File("C:/Test/image.jpeg"), new File("C:/Test/image-cropped.jpeg"));
+			new CropperManager(new File("C:/Test/image.jpeg"), new File("C:/Test/image-cropped.jpeg"));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -28,12 +32,13 @@ public class Cropper {
     
     
     
-    public Cropper(File file, File saveLocation) throws IOException {
+    public CropperManager(File file, File saveLocation) throws IOException {
 		createGUI(openImage(file), saveLocation);
     }
-    public Cropper(BufferedImage image, File saveLocation) {
+    public CropperManager(BufferedImage image, File saveLocation) {
     	createGUI(image, saveLocation);
     }
+    
     
     
     
@@ -41,13 +46,18 @@ public class Cropper {
     	ImageCropper cropper = new ImageCropper(image, saveLocation);
         cropperFrame = new JFrame("Cropper");
         cropperFrame.setName("Cropper");
-        cropperFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        cropperFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         cropperFrame.setContentPane(cropper);
         cropperFrame.pack();
         cropperFrame.setVisible(true);
         cropperFrame.toFront();
         cropperFrame.requestFocus();
         cropperFrame.setResizable(false);
+        try {
+			cropperFrame.setIconImage(ImageIO.read(new ByteArrayInputStream(CommonMethods.getResourceByte("logo.png"))));
+		} catch (IOException e) {
+			new ErrorDialog(e);
+		}
     }
     
     public static void closeGUI() {
@@ -64,7 +74,6 @@ public class Cropper {
 
     public static BufferedImage openImage(File file) throws IOException {
         BufferedImage img = ImageIO.read(file);
-//        String fileExtension = CommonMethods.getFileExtension(file);
         int width = img.getWidth();
         int height = img.getHeight();
         

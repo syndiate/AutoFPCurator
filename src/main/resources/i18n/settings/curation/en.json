@@ -1,0 +1,18 @@
+{
+	"lcDirDefault": "Ask for launch command, default prefix:",
+	"libraryDefault": "Ask whether the curation is a game or animation, default (G/A):",
+	"seriesDefault": "Ask for series, default:",
+	"devDefault": "Ask for developer, default:",
+	"publishDefault": "Ask for publisher, default:",
+	"modeDefault": "Ask for play mode, default (s,m):",
+	"releaseDefault": "Ask for release date, default:",
+	"verDefault": "Ask for version, default:",
+	"langDefault": "Ask for languages, default:",
+	"tagsDefault": "Ask for tags, default:",
+	"srcDefault": "Ask for source, default:",
+	"statusDefault": "Ask for status, default (p,pa,h):",
+	"gameNotesDefault": "Ask for game notes, default:",
+	"descDefault": "Ask for original description, default:",
+	"ssDefault": "Prompt screenshot, default action (Y/N):",
+	"promptZipDefault": "Prompt to close curation, default action (Y/N):"
+}

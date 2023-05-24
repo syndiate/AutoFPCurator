@@ -1,0 +1,5 @@
+{ 
+	"restartConfirmation": "¿Estás seguro de que deseas reiniciar? (Se perderán todos los cambios no guardados).",
+	"exitConfirmation": "¿Estás seguro de que deseas salir? (Se perderán todos los cambios no guardados).",
+	"unsavedChanges": "Tienes cambios sin guardar. "
+}

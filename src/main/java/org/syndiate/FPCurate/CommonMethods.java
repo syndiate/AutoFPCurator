@@ -14,6 +14,7 @@ import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.apache.commons.io.IOUtils;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 
 import com.google.gson.Gson;
@@ -22,6 +23,7 @@ import com.google.gson.JsonSyntaxException;
 
 
 public class CommonMethods {
+	
 	
 	
 	
@@ -45,6 +47,8 @@ public class CommonMethods {
 			while ((currentLine = br.readLine()) != null) {
 				resourceContents.append(currentLine);
 			}
+			is.close();
+			br.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
@@ -53,6 +57,35 @@ public class CommonMethods {
 		return resourceContents.toString();
 		
 	}
+	
+	
+	
+	public static byte[] getResourceByte(String filePath) {
+		if (filePath == null) {
+			return null;
+		}
+		
+		InputStream is = I18N.class.getClassLoader().getResourceAsStream(filePath);
+		if (is == null) {
+			return null;
+		}
+		
+		try {
+			return IOUtils.toByteArray(is);
+		} catch (IOException ex) {
+			new ErrorDialog(ex);
+		}
+		
+		return null;
+
+	}
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -77,6 +110,7 @@ public class CommonMethods {
 		    while ((length = inputStream.read(buffer)) > 0) {
 		        outputStream.write(buffer, 0, length);
 		    }
+		    outputStream.close();
 		} catch (IOException e) {
 			new ErrorDialog(e);
 			return;
@@ -84,13 +118,8 @@ public class CommonMethods {
 		
 		
 		
-		ProcessBuilder processBuilder;
-		if (commandLine) {
-			processBuilder = new ProcessBuilder("cmd.exe", "/c", tempFile.getAbsolutePath() + " " + command);
-		} else {
-			processBuilder = new ProcessBuilder(tempFile.getAbsolutePath(), command);
-		}
-//		ProcessBuilder processBuilder = new ProcessBuilder(tempFile.getAbsolutePath(), command);
+		ProcessBuilder processBuilder = !commandLine ? new ProcessBuilder(tempFile.getAbsolutePath(), command)
+								: new ProcessBuilder("cmd.exe", "/c", tempFile.getAbsolutePath() + " " + command);
 		processBuilder.redirectErrorStream(true);
 		
 		
@@ -106,6 +135,7 @@ public class CommonMethods {
 		if (!wait) {
 			return;
 		}
+		
 		
 		try {
 			process.waitFor();

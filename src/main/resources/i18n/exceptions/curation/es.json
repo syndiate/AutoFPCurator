@@ -1,0 +1,7 @@
+{ 
+	"metaYamlWrite": "No se pudo analizar/escribir en el archivo meta.yaml.",
+	"metaYamlAccess": "No se puede crear el archivo meta.yaml. ¿Quizás AutoFPCurator no tiene suficientes permisos para acceder al directorio?",
+	"moveSWF": "Error al mover el archivo SWF abierto. Debes moverlo manualmente.",
+	"openSWF": "No se puede abrir el archivo SWF. Puedes abrirlo manualmente aquí: ",
+	"flashWindowNotFound": "No se encontró la ventana de Flash Player."
+}

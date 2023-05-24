@@ -4,36 +4,61 @@ package org.syndiate.FPCurate.gui.main;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
+import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.DocumentEvent;
 
 import org.syndiate.FPCurate.CommonMethods;
 import org.syndiate.FPCurate.Curation;
 import org.syndiate.FPCurate.I18N;
 import org.syndiate.FPCurate.SettingsManager;
+import org.syndiate.FPCurate.gui.common.CommonGUI;
+import org.syndiate.FPCurate.gui.common.dialog.ConfirmDialog;
+import org.syndiate.FPCurate.gui.common.dialog.ConfirmationListener;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 import org.syndiate.FPCurate.gui.common.dialog.GenericDialog;
+import org.syndiate.FPCurate.gui.cropper.CropperManager;
+import org.syndiate.FPCurate.gui.settings.DocumentChangeListener;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.error.YAMLException;
+
+
+
+
+
+
 
 
 
@@ -46,7 +71,12 @@ public class MainWindow {
 	private static final JFrame frmAPCurator = new JFrame();
 	private static JPanel mainPanel = new JPanel(new GridBagLayout());
 	private static Curation mainCuration = null;
+	private static String unsavedMeta = "";
 	
+	
+	private static final Map<String, String> exStrs = I18N.getStrings("exceptions/main");
+	private static final Map<String, String> mainMiscStrs = I18N.getStrings("main/misc");
+	private static final Map<String, String> menuBarStrs = I18N.getStrings("main/menu_bar");
 	
 	
 
@@ -66,7 +96,7 @@ public class MainWindow {
 		try {
 			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 		} catch (Exception e) {
-			new ErrorDialog(new Exception("Could not load Windows look and feel", e));
+			new ErrorDialog(new Exception(exStrs.get("windowsLookAndFeel"), e));
 		}
 		
 		loadWelcomeScreen();
@@ -84,40 +114,48 @@ public class MainWindow {
 		
 		
 		Map<String, String> messageStrs = I18N.getStrings("main/message");
-
+		
 		
 		frmAPCurator.getContentPane().removeAll();
 		frmAPCurator.getContentPane().revalidate();
 		frmAPCurator.getContentPane().repaint();
 		
 		mainPanel.setLayout(new GridBagLayout());
+		mainPanel.setBackground(new Color(237, 237, 236));
 		mainPanel.removeAll();
 		mainPanel.revalidate();
 		mainPanel.repaint();
 		
+
 		
-		
-		frmAPCurator.getContentPane().setBackground(new Color(237, 237, 236));
-		frmAPCurator.setBackground(new Color(237, 237, 236));
 		frmAPCurator.setTitle("AutoFPCurator");
 		frmAPCurator.setSize(1280, 720);
 		frmAPCurator.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmAPCurator.setLocationRelativeTo(null);
 		frmAPCurator.setJMenuBar(MainGUI.initMenuBar());
-
-
+		
+		
+		
 		JLabel label = new JLabel(
 				"<html>" + messageStrs.get("instructions") + "<br>" + messageStrs.get("iterateThrough") + "<br><br><b>"
 						+ messageStrs.get("noticeHeader") + "</b>" + "<br>" + messageStrs.get("notice"));
 
 		label.setFont(label.getFont().deriveFont(14.0f));
-
+		
 		
 		MainWindow.mainPanel.add(label, new GridBagConstraints());
 		
 		frmAPCurator.add(mainPanel, BorderLayout.CENTER);
 		frmAPCurator.revalidate();
 		frmAPCurator.repaint();
+		
+		
+		// load the icon
+		try {
+			frmAPCurator.setIconImage(ImageIO.read(new ByteArrayInputStream(CommonMethods.getResourceByte("logo.png"))));
+		} catch (IOException e) {
+			new ErrorDialog(new IOException("Failed to set icon.", e));
+		}
 		
 	}
 	
@@ -132,41 +170,23 @@ public class MainWindow {
 	
 	public static void handleFile(File selectedFile) {
 		
-		if (selectedFile.isFile()) {
-
-			String fileExtension = CommonMethods.getFileExtension(selectedFile);
-			switch (fileExtension) {
-				case "swf":
-					MainWindow.handleSWF(selectedFile);
-					break;
-				case "zip":
-					MainWindow.handleZippedCuration(selectedFile);
-					break;
-				default:
-					new GenericDialog("File must be of type SWF or ZIP.");
-			}
+		if (!selectedFile.isFile()) {
+			MainWindow.handleSWFAndFolder(selectedFile);
 			return;
 		}
-		
-		MainWindow.handleSWF(selectedFile);
-		
-		/*
-		Path dir = selectedFile.toPath();
-		try {
-			
-			Files.walk(dir).forEach(path -> {
-				
-				
-				File curFile = path.toFile();
-				if (CommonMethods.getFileExtension(curFile).equals("swf")) {
-					MainWindow.handleSWF(curFile);
-				}
-				
-			});
-		} catch (IOException e) {
-			new ErrorDialog(e);
-		}*/
-		
+
+		String fileExtension = CommonMethods.getFileExtension(selectedFile);
+		switch (fileExtension) {
+			case "swf":
+				MainWindow.handleSWFAndFolder(selectedFile);
+				break;
+			case "zip":
+//				MainWindow.handleZippedCuration(selectedFile);
+				break;
+			default:
+				new GenericDialog(exStrs.get("swfOrZipFileRequired"));
+		}
+		return;
 		
 	}
 	
@@ -177,7 +197,7 @@ public class MainWindow {
 	
 	
 	
-	public static void handleSWF(File swfFile) {
+	public static void handleSWFAndFolder(File swfFile) {
 		
 		
 		
@@ -185,7 +205,7 @@ public class MainWindow {
 		String zippedCurations = SettingsManager.getSetting("zippedCurations");
 		
 		if (workingCurations.equals("") || zippedCurations.equals("")) {
-			new GenericDialog("Please specify what paths you would like AutoFPCurator to store working/zipped curations in in Settings > Paths.");
+			new GenericDialog(exStrs.get("specifyPaths"));
 			return;
 		}
 		
@@ -194,9 +214,12 @@ public class MainWindow {
 		frmAPCurator.getContentPane().remove(MainWindow.mainPanel);
 		
 		
+		
 		mainPanel = new JPanel();
 		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 	    mainPanel.setBackground(new Color(255, 255, 255));
+	    
+	    
 	    
 	    
 	    JTabbedPane tabbedPane = new JTabbedPane();
@@ -204,20 +227,127 @@ public class MainWindow {
         tabbedPane.setSize(Toolkit.getDefaultToolkit().getScreenSize());
         
         
-        tabbedPane.addTab("Main", new JScrollPane(mainPanel));
+        
+        
+        tabbedPane.addTab(mainMiscStrs.get("mainTab"), new JScrollPane(mainPanel));
         tabbedPane.addTab("Meta.yaml", new JPanel());
-        tabbedPane.addChangeListener((ChangeEvent e) -> {
+        tabbedPane.addChangeListener((ChangeEvent ev) -> {
         	
         	int index = tabbedPane.getSelectedIndex();
         	Component comp = tabbedPane.getComponentAt(index);
         	
         	switch (index) {
+        		case 0: {
+        			
+        			String title = tabbedPane.getTitleAt(1);
+        			if (!title.equals("*Meta.yaml")) {
+        				return;
+        			}
+        			
+        			new ConfirmDialog(mainMiscStrs.get("unsavedMetaYAML"), 
+        				new ConfirmationListener() {
+        					public void onConfirm() {
+        						tabbedPane.setTitleAt(1, "Meta.yaml");
+        						unsavedMeta = "";
+        					}
+        					public void onCancel() {
+        						tabbedPane.setSelectedIndex(1);
+        					}
+        				}
+        			);
+        			break;
+        		
+        		}
         		case 1:
         			MainWindow.loadMetaPanel((JPanel) comp);
         			break;
         	}
         	
         });
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        {
+        	
+        	Map<String, String> curationItems = I18N.getStrings("main/menu_bar/items/curation");
+        	
+        	JMenu curationMenu = new JMenu(menuBarStrs.get("curation"));
+
+			JMenuItem openCuration = new JMenuItem(curationItems.get("openCuration"));
+			openCuration.addActionListener((ActionEvent e) -> {
+				try {
+					Desktop.getDesktop().open(mainCuration.getCurFolder());
+				} catch (IOException ex) {
+					new ErrorDialog(ex);
+				}
+			});
+			CommonGUI.setMenuItemShortcut(openCuration, KeyEvent.VK_E, KeyEvent.CTRL_DOWN_MASK);
+			curationMenu.add(openCuration);
+			
+
+			
+			
+			JMenuItem openSWF = new JMenuItem(curationItems.get("openSWF"));
+			openSWF.addActionListener((ActionEvent e) -> {
+				try {
+					Desktop.getDesktop().open(mainCuration.getSWF());
+				} catch (IOException ex) {
+					new ErrorDialog(ex);
+				}
+			});
+			CommonGUI.setMenuItemShortcut(openSWF, KeyEvent.VK_O, KeyEvent.ALT_DOWN_MASK);
+			curationMenu.add(openSWF);
+			
+			
+			
+			
+			JMenuItem openCropper = new JMenuItem(curationItems.get("openLogo"));
+			openCropper.addActionListener((ActionEvent ev) -> {
+				File logoPath = new File(mainCuration.getCurFolder().getAbsolutePath() + "/logo.png");
+				try {
+					new CropperManager(logoPath, logoPath);
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
+			});
+			CommonGUI.setMenuItemShortcut(openCropper, KeyEvent.VK_I, KeyEvent.CTRL_DOWN_MASK);
+			curationMenu.add(openCropper);
+
+			
+			
+			
+			JMenuItem terminateCuration = new JMenuItem(curationItems.get("delCuration"));
+			terminateCuration.addActionListener((ActionEvent e) -> {
+				new ConfirmDialog(mainMiscStrs.get("terminateCurationConfirm"), new ConfirmationListener() {
+					public void onConfirm() {
+						mainCuration.closeCuration(true);
+					}
+					public void onCancel() {}
+				});
+			});
+			curationMenu.add(terminateCuration);
+
+
+			MainGUI.addMenuBarItem(curationMenu);
+        }
+        
+        
+        
+        
+        
+        
+        
+        
         
         
         
@@ -258,10 +388,17 @@ public class MainWindow {
 	    
 		
 	}
-	
+	/*
 	public static void handleZippedCuration(File zippedCuration) {
 		
-	}
+	}*/
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -270,13 +407,27 @@ public class MainWindow {
 	
 	
 	private static void loadMetaPanel(JPanel comp) {
-
+		
+		comp.removeAll();
+		comp.revalidate();
+		comp.repaint();
+		
+		
+		JTabbedPane tabbedPane = (JTabbedPane) SwingUtilities.getAncestorOfClass(JTabbedPane.class, comp);
+		
+		JLabel loading = new JLabel(mainMiscStrs.get("loading"));
+		comp.add(loading);
 		comp.setLayout(new BorderLayout());
+		
+		
 		
 		JTextArea metaView = new JTextArea();
 		metaView.setEditable(true);
 		metaView.setLineWrap(true);
 		metaView.setWrapStyleWord(true);
+		metaView.putClientProperty("changed", "false");
+		metaView.setBorder(new LineBorder(Color.BLACK, 1, false));
+		
 		
 
 		BufferedReader metaReader;
@@ -284,25 +435,99 @@ public class MainWindow {
 		String line;
 		
 		
-		try {
-			metaReader = new BufferedReader(new FileReader(mainCuration.getMetaYaml()));
-			while((line = metaReader.readLine()) != null) {
-				meta.append(line);
+		
+		// this is for if the user clicks cancel on the confirm dialog (asking to discard meta.yaml changes)
+		if (unsavedMeta.equals("")) {
+			
+			try {
+				metaReader = new BufferedReader(new FileReader(mainCuration.getMetaYaml()));
+				while ((line = metaReader.readLine()) != null) {
+					meta.append(line + "\n");
+				}
+				metaReader.close();
+			} catch (IOException e) {
+				meta.append(exStrs.get("unableToReadMeta"));
+				metaView.setEditable(false);
 			}
-		} catch (IOException e) {
-			meta.append("An error occurred when trying to read the meta.yaml file. Perhaps it was accidentally deleted?");
+			
+		} else {
+			meta.append(unsavedMeta);
 		}
+		unsavedMeta = "";
 
 		
-		metaView.setText(meta.toString());
+		
+		
+		String previousText = meta.toString();
+		if (previousText.equals("")) {
+			metaView.setEditable(false);
+			return;
+		}
+		
+		
+		
+		metaView.setText(previousText);
+		metaView.getDocument().addDocumentListener(new DocumentChangeListener() {
+			public void update(DocumentEvent e) {
+				
+				String currentText = metaView.getText();
+				if (currentText.equals(previousText)) {
+					tabbedPane.setTitleAt(1, "Meta.yaml");
+					return;
+				}
+				
+				try {
+					new Yaml().load(currentText);
+				} catch (YAMLException ye) {
+					metaView.setBorder(new LineBorder(Color.RED, 1, false));
+					metaView.putClientProperty("changed", "false");
+					return;
+				}
+				tabbedPane.setTitleAt(1, "*Meta.yaml");
+				metaView.putClientProperty("changed", "true");
+				metaView.setBorder(new LineBorder(Color.BLACK, 1, false));
+				unsavedMeta = currentText;
+				
+				
+				
+			}
+		});
+		
+		
+		
+		
+		metaView.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				
+				if (e.getKeyCode() != KeyEvent.VK_S || !e.isControlDown()) {
+					return;
+				}
+				if (!metaView.getClientProperty("changed").equals("true")) {
+					return;
+				}
+				e.consume();
+
+				try {
+					FileWriter writer = new FileWriter(mainCuration.getMetaYaml(), false);
+					writer.write(metaView.getText());
+					writer.close();
+				} catch (IOException ex) {
+					new ErrorDialog(ex);
+				}
+				
+				tabbedPane.setTitleAt(1, "Meta.yaml");
+			}
+		});
+		
+		
 
 		comp.add(new JScrollPane(metaView), BorderLayout.CENTER);
+		comp.remove(loading);
 		comp.revalidate();
 		comp.repaint();
 		
 	}
-	
-
 	
 	
 	
@@ -310,6 +535,12 @@ public class MainWindow {
 		mainPanel.add(comp);
 		mainPanel.revalidate();
         mainPanel.repaint();
+	}
+	
+	public static void removeComponent(Component comp) {
+		mainPanel.remove(comp);
+		mainPanel.revalidate();
+		mainPanel.repaint();
 	}
 	
 	
@@ -372,7 +603,7 @@ public class MainWindow {
 			System.exit(0);
 			
 		} catch (Exception e) {
-			new ErrorDialog(new Exception("Error while trying to restart the application", e));
+			new ErrorDialog(new Exception(exStrs.get("restartApp"), e));
 		}
 	}
 	

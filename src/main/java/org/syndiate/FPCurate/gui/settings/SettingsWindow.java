@@ -3,20 +3,25 @@ package org.syndiate.FPCurate.gui.settings;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
+import org.syndiate.FPCurate.CommonMethods;
 import org.syndiate.FPCurate.I18N;
 import org.syndiate.FPCurate.SettingsManager;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmDialog;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmationListener;
+import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 import org.syndiate.FPCurate.gui.main.MainWindow;
 import org.syndiate.FPCurate.gui.settings.preferences.*;
 
@@ -52,7 +57,7 @@ public class SettingsWindow extends JFrame {
         tabbedPane.setFocusable(false);
 		{
 			tabbedPane.addTab(settingsMenuStrs.get("generalTab"), new GeneralPrefs());
-			tabbedPane.addTab(settingsMenuStrs.get("pathsTab"), new Paths());
+			tabbedPane.addTab(settingsMenuStrs.get("pathsTab"), new PathsPrefs());
 			tabbedPane.addTab(settingsMenuStrs.get("curationTab"), new CurationPrefs());
 			this.add(tabbedPane, BorderLayout.NORTH);
 		}
@@ -103,6 +108,13 @@ public class SettingsWindow extends JFrame {
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 		
 
+		
+		try {
+			this.setIconImage(ImageIO.read(new ByteArrayInputStream(CommonMethods.getResourceByte("logo.png"))));
+		} catch (IOException e) {
+			new ErrorDialog(e);
+		}
+		
         this.setVisible(true);
     }
 	

@@ -1,5 +1,7 @@
-{ 
+{
 	"windowTitle": "Preferencias",
 	"generalTab": "General",
-	"pathsTab": "Las rutas"
+	"pathsTab": "Rutas",
+	"curationTab": "Proceso de Curación",
+	"restartDialog": "Se requiere reiniciar para que los cambios se apliquen por completo. ¿Reiniciar ahora?"
 }

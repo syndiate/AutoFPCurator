@@ -1,0 +1,7 @@
+{ 
+	"windowsLookAndFeel": "No se pudo cargar la apariencia de Windows.",
+	"swfOrZipFileRequired": "El archivo debe ser del tipo SWF (ZIP no es compatible actualmente, pero puede serlo en el futuro).",
+	"specifyPaths": "Por favor, especifica en Configuración > Rutas las ubicaciones en las que deseas que AutoFPCurator almacene las curaciones de trabajo/empaquetadas.",
+	"unableToReadMeta": "Se produjo un error al intentar leer el archivo meta.yaml. ¿Quizás se eliminó accidentalmente?",
+	"restartApp": "Error al intentar reiniciar la aplicación"
+}

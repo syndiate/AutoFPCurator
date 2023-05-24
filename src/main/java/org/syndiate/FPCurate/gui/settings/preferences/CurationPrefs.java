@@ -19,6 +19,7 @@ import javax.swing.text.Document;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.syndiate.FPCurate.CommonMethods;
 import org.syndiate.FPCurate.Curation;
+import org.syndiate.FPCurate.I18N;
 import org.syndiate.FPCurate.gui.common.SettingsGUI;
 import org.syndiate.FPCurate.gui.settings.DocumentChangeListener;
 import org.syndiate.FPCurate.gui.settings.SettingsWindow;
@@ -34,53 +35,49 @@ public class CurationPrefs extends JPanel {
 	private static final long serialVersionUID = -1393840234024191975L;
 	
 	
-	
+	private static final Map<String, String> curationPrefsStrs = I18N.getStrings("settings/curation");
 	private static final Map<String, String> askFors = Map.ofEntries(
-			entry("lcDirDefault", "Ask for launch command, default prefix:"),
-			entry("libraryDefault", "Ask whether the curation is a game or animation, default (G/A):"),
-			entry("seriesDefault", "Ask for series, default:"),
-			entry("devDefault", "Ask for developer, default:"),
-			entry("publishDefault", "Ask for publisher, default:"),
-			entry("modeDefault", "Ask for play mode, default (s,m):"),
-			entry("releaseDefault", "Ask for release date, default:"),
-			entry("verDefault", "Ask for version, default:"),
-			entry("langDefault", "Ask for languages, default:"),
-			entry("tagsDefault", "Ask for tags, default:"),
-			entry("srcDefault", "Ask for source, default:"),
-			entry("statusDefault", "Ask for status, default (p,pa,h):"),
-			entry("gameNotesDefault", "Ask for game notes, default:"),
-			entry("descDefault", "Ask for original description, default:"),
-			entry("ssDefault", "Prompt screenshot, default action (Y/N):"),
-			entry("promptZipDefault", "Prompt to close curation, default action (Y/N):")
+			entry("lcDirDefault", curationPrefsStrs.get("lcDirDefault")),
+			entry("libraryDefault", curationPrefsStrs.get("libraryDefault")),
+			entry("seriesDefault", curationPrefsStrs.get("seriesDefault")),
+			entry("devDefault", curationPrefsStrs.get("devDefault")),
+			entry("publishDefault", curationPrefsStrs.get("publishDefault")),
+			entry("modeDefault", curationPrefsStrs.get("modeDefault")),
+			entry("releaseDefault", curationPrefsStrs.get("releaseDefault")),
+			entry("verDefault", curationPrefsStrs.get("verDefault")),
+			entry("langDefault", curationPrefsStrs.get("langDefault")),
+			entry("tagsDefault", curationPrefsStrs.get("tagsDefault")),
+			entry("srcDefault", curationPrefsStrs.get("srcDefault")),
+			entry("statusDefault", curationPrefsStrs.get("statusDefault")),
+			entry("gameNotesDefault", curationPrefsStrs.get("gameNotesDefault")),
+			entry("descDefault", curationPrefsStrs.get("descDefault")),
+			entry("ssDefault", curationPrefsStrs.get("ssDefault")),
+			entry("promptZipDefault", curationPrefsStrs.get("promptZipDefault"))
 	);
 	
 	
 	
+	
+	
+	
 	public CurationPrefs() {
-
-		
-		this.setLayout(new GridLayout(askFors.size(), 3));
-		
-		
+		this.setLayout(new GridLayout(getRows(), 3));
 		for (Entry<String, String> entry : askFors.entrySet()) {
 			createAskFor(entry);
 		}
-		
-		
-		
 	}
+	
+	
 	
 	
 	private void createAskFor(Entry<String, String> entry) {
 		
 		String id = entry.getKey();
 		JCheckBox box = SettingsGUI.createCheckBox(id.replace("Default", "DefOff"));
-//		box.setEnabled(Boolean.parseBoolean(SettingsManager.getSetting("lcDirDefGreyed")));
 		
 		
 		JTextField field;
 		CurPrefsListener listener = null;
-//		JTextField field = SettingsGUI.createTextField(entry.getKey());
 		
 		switch(id) {
 		
@@ -89,7 +86,6 @@ public class CurationPrefs extends JPanel {
 				listener = new CurPrefsListener() {
 					public void update(Document doc) {
 						JTextField field = (JTextField) doc.getProperty("parent");
-//					JCheckBox box = (JCheckBox) e.getDocument().getProperty("checkBox");
 						String fieldId = (String) doc.getProperty("settingsId");
 						UrlValidator urlValidator = new UrlValidator(Curation.lcProtocols);
 
@@ -100,10 +96,7 @@ public class CurationPrefs extends JPanel {
 							normalFieldBorder(field);
 
 						} else {
-//						SettingsWindow.unqueueSetting(fieldId);
 							invalidFieldBorder(field);
-//						box.setEnabled(false);
-//						SettingsGUI.Box(box, false);
 							SettingsWindow.queueSetting("lcDirDefGreyed", false);
 						}
 						SettingsWindow.queueSetting(fieldId, field.getText());
@@ -130,7 +123,6 @@ public class CurationPrefs extends JPanel {
 							SettingsWindow.queueSetting(fieldId, fieldText);
 							normalFieldBorder(field);
 						} else {
-//							SettingsWindow.unqueueSetting(fieldId);
 							invalidFieldBorder(field);
 						}
 					}
@@ -180,7 +172,7 @@ public class CurationPrefs extends JPanel {
 						String fieldId = (String) doc.getProperty("settingsId");
 						String fieldText = CommonMethods.correctSeparators(field.getText().toLowerCase(), ";");
 						
-						Map<String, String> langs = (Map<String, String>) CommonMethods.parseJSONStr(CommonMethods.getResource("langs.json"));
+						Map<String, String> langs = (Map<String, String>) CommonMethods.parseJSONStr(CommonMethods.getResource("curation_data/langs.json"));
 						for (String lang : fieldText.split(";")) {
 							
 							if (!langs.containsKey(lang.trim())) {
@@ -305,8 +297,6 @@ public class CurationPrefs extends JPanel {
 			listener.update(field.getDocument());
 		}
 		
-//		field.setEnabled(!box.isSelected());
-//		box.addItemListener((ItemEvent e) -> field.setEnabled(!box.isSelected()));
 		
 		
 		this.add(box);
@@ -332,6 +322,13 @@ public class CurationPrefs extends JPanel {
 	}
 	
 	
+	
+	
+	public static int getRows() {
+		return askFors.size();
+	}
+	
+	
 
 }
 
@@ -343,7 +340,7 @@ public class CurationPrefs extends JPanel {
 abstract class CurPrefsListener extends DocumentChangeListener {
 	
 	public void update(DocumentEvent e) {
-		update(e.getDocument());
+		this.update(e.getDocument());
 	}
 	
 	public abstract void update(Document doc);

@@ -23,6 +23,11 @@ class CommonMethodsTest {
 	void resourceByte() {
 		
 	}
+	
+	@Test
+	void correctSeparators() {
+		assertTrue(CommonMethods.correctSeparators("Wild;Toy;Something;", ";").equals("Wild; Toy; Something"));
+	}
 		
 	@Test
 	void nullStr() {

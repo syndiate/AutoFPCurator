@@ -1,10 +1,9 @@
 package org.syndiate.FPCurate;
 
 import java.awt.Desktop;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -17,12 +16,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.imageio.ImageIO;
 import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
 import javax.swing.JTextField;
 
 import org.apache.commons.io.FileUtils;
@@ -32,7 +30,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
-import org.syndiate.FPCurate.gui.cropper.Cropper;
+import org.syndiate.FPCurate.gui.cropper.CropperManager;
 import org.syndiate.FPCurate.gui.main.MainGUI;
 import org.syndiate.FPCurate.gui.main.MainWindow;
 import org.yaml.snakeyaml.DumperOptions;
@@ -43,17 +41,19 @@ import com.google.gson.Gson;
 
 
 
-
 public class Curation {
 	
-	/*
-	private final File metaYAML;
-	private final File curFolder;
-	private final String curationId;
-*/
+
 	private File metaYAML;
 	private File curFolder;
+	private File swfPath;
 	private String curationId;
+	
+	private static final String curationDataDirPrefix = "curation_data/";
+	public static final String[] lcProtocols = {"http"};
+	
+	private static final Map<String, String> errorStrs = I18N.getStrings("exceptions/curation");
+	private static final Map<String, String> curationStrs = I18N.getStrings("curation");
 	
 	
 	private static final KeyAdapter requireInput = new KeyAdapter() {
@@ -65,7 +65,11 @@ public class Curation {
 		}
 	};
 	
-	public static final String[] lcProtocols = {"http"};
+	
+	
+	
+	
+	
 	
 	
 	
@@ -87,34 +91,31 @@ public class Curation {
 	
 	
 	
-	
-	
-	
-	
+	// support for folders with swf files inside them
 	public Curation(File folder) {
-		
-		if (folder.isDirectory()) {
-			
-			Path dir = folder.toPath();
-			try {
-				
-				Files.walk(dir).forEach(path -> {
-					
-					File curFile = path.toFile();
-					if (!CommonMethods.getFileExtension(curFile).equals("swf")) {
-						return;
-					}
-					new Curation().init(curFile, false);
-					
-				});
-				
-				MainWindow.loadWelcomeScreen();
-				
-			} catch (IOException e) {
-				new ErrorDialog(e);
-			}
-			
+
+		if (!folder.isDirectory()) {
+			return;
 		}
+
+		Path dir = folder.toPath();
+		try {
+
+			// iterate through all swf files in the folder
+			Files.walk(dir).forEach(path -> {
+				File curFile = path.toFile();
+				if (!CommonMethods.getFileExtension(curFile).equals("swf")) {
+					return;
+				}
+				new Curation().init(curFile, false);
+			});
+			// finish operation
+			MainWindow.loadWelcomeScreen();
+
+		} catch (IOException e) {
+			new ErrorDialog(e);
+		}
+
 	}
 	
 	
@@ -131,7 +132,6 @@ public class Curation {
 	
 	
 	public void writeMeta(String key, Object value) {
-		
 		
 		try {
 			
@@ -162,12 +162,39 @@ public class Curation {
 			
 			
 		} catch (IOException e) {
-			new ErrorDialog(new IOException("Could not parse/write to the meta.yaml file.", e));
+			new ErrorDialog(new IOException(errorStrs.get("metaYamlWrite"), e));
 		}
 		
 	}
-
 	
+	
+	
+	
+	public Optional<Object> readMeta(String key) {
+		try {
+			
+			final Yaml yaml = new Yaml();
+			FileReader reader = new FileReader(this.metaYAML);
+			Map<String, Object> meta = yaml.load(reader);
+			
+			if (meta == null) {
+				meta = new HashMap<>();
+			}
+			Object value = meta.get(key);
+			// account for fields whose values are literally null
+			if (value == null && meta.containsKey(key)) {
+				value = "null";
+			}
+			
+			reader.close();
+			return Optional.ofNullable(value);
+			
+		} catch (IOException e) {
+			new ErrorDialog(e);
+		}
+		return null;
+	}
+
 	
 	
 	
@@ -181,29 +208,27 @@ public class Curation {
 		boolean manualTagCats = false;
 		String[] tags = tagsStr.split(";");
 		ArrayList<String> tagCats = new ArrayList<>();
-		TagElement[] elements = new Gson().fromJson(CommonMethods.getResource("tags.json"), TagElement[].class);
+		TagElement[] elements = new Gson().fromJson(CommonMethods.getResource(curationDataDirPrefix + "tags.json"), TagElement[].class);
 		
 		
 		for (String tag : tags) {
 			
 			int oldLength = tagCats.size();
 
+			
 			for (TagElement element : elements) {
-				
 				if (!element.getAliases().contains(tag.trim())) {
 					continue;
 				}
 				tagCats.add(element.getCategory());
 				break;
-				
 			}
-
 			if (oldLength != tagCats.size()) {
 				continue;
 			}
 			
 			
-			System.out.println("A specific tag you entered, " + tag + " appears to be invalid.");
+			System.out.println(curationStrs.get("invalidTagPt1") + tag + curationStrs.get("invalidTagPt2"));
 			manualTagCats = true;
 			
 		}
@@ -235,7 +260,7 @@ public class Curation {
 	
 	
 	
-	public static boolean dupeCheck(String title) {
+	public static boolean checkPotentialDupes(String title) {
 		
 		
 		String searchHTML = FPData.getSearchData(title);
@@ -248,7 +273,6 @@ public class Curation {
 		for (Element game : searchData.select("div.game")) {
 			
 			
-			
 			String gameTitle = game.selectFirst("a").text().replaceAll("\\[.*?\\]", "");
 			String UUID = game.selectFirst("div.game-details").attr("data-id");
 			LevenshteinDistance ld = new LevenshteinDistance();
@@ -256,24 +280,19 @@ public class Curation {
 			int distance = ld.apply(title, gameTitle);
 			int maxLength = Math.max(title.length(), gameTitle.length());
 			
+			
 			double similarityPercentage = ((double) (maxLength - distance)) / maxLength * 100.0;
-			
-			
 			if (similarityPercentage < 0.85) {
 				continue;
 			}
 			
-			boolean shouldEndCuration = Curation.isDupe(gameTitle, UUID);
+			boolean shouldEndCuration = Curation.dupePrompt(gameTitle, UUID);
 			
 			
 			if (shouldEndCuration) {
 				closeCuration(UUID, false);
 				return true;
-			} else {
-				continue;
 			}
-			
-			
 			
 		}
 		
@@ -286,13 +305,13 @@ public class Curation {
 	
 	
 	
-	public static boolean isDupe(String gameTitle, String UUID) {
+	public static boolean dupePrompt(String gameTitle, String UUID) {
 		
 		
-		System.out.println("Possible dupe.");
-        System.out.println("Title in question:" + gameTitle);
+		System.out.println(curationStrs.get("possibleDupe"));
+        System.out.println(curationStrs.get("dupeTitleInQuestion") + gameTitle);
         	
-        String initialDecision = MainGUI.input("Do you want to terminate the curation (Y/N), or do you want more information on the curation in question (More)?", requireInput).toLowerCase();
+        String initialDecision = MainGUI.input(curationStrs.get("initialDupePrompt"), requireInput).toLowerCase();
         	
         switch(initialDecision) {
         
@@ -305,10 +324,10 @@ public class Curation {
         		
         		
         		String curationData = Jsoup.parse(FPData.getCurationData(UUID)).selectFirst("pre").text();
-        		System.out.println("Metadata of the curation:");
+        		System.out.println(curationStrs.get("dupeMetadata"));
         		System.out.println(curationData);
         		
-        		String finalDecision = MainGUI.input("Do you want to terminate the curation (Y/N)?", requireInput).toLowerCase();
+        		String finalDecision = MainGUI.input(curationStrs.get("finalDupePrompt"), requireInput).toLowerCase();
         		
         		
         		if (finalDecision.equals("y")) {
@@ -319,14 +338,14 @@ public class Curation {
         		}
         		
         		
-        		System.out.println("Invalid option entered. Skipping.");
+        		System.out.println(curationStrs.get("invalidOption") + curationStrs.get("skipping"));
 				return false;
         		
         		
         	}
         	
         	default: {
-        		System.out.println("Invalid option entered. Skipping.");
+        		System.out.println(curationStrs.get("invalidOption") + curationStrs.get("skipping"));
         		return false;
         	}
         		
@@ -347,13 +366,10 @@ public class Curation {
 	
 	
 	
-	
-	
 	public static void closeCuration(String curationId, boolean endProgram) {
 		
 		try {
 			FileUtils.deleteDirectory(new File(SettingsManager.getSetting("workingCurations") + File.separator + curationId));
-			Runtime.getRuntime().exec("taskkill /f /im flashplayer_32_sa.exe & taskkill /f /im cmd.exe");
 		} catch (IOException ex) {
 			new ErrorDialog(ex);
 			return;
@@ -365,16 +381,10 @@ public class Curation {
 		
 	}
 	
-
-	
-	
-	
-	
 	public void closeCuration(boolean shouldCloseCurationView) {
 		
 		try {
 			FileUtils.deleteDirectory(this.curFolder);
-			Runtime.getRuntime().exec("taskkill /f /im flashplayer_32_sa.exe & taskkill /f /im cmd.exe");
 		} catch(IOException ex) {
 			new ErrorDialog(ex);
 		}
@@ -404,18 +414,22 @@ public class Curation {
 	public void init(File swfPath, boolean shouldCloseCurationView) {
 		
 		
+		this.swfPath = swfPath;
 		
+		
+		// set system.out.println to this function
 		PrintStream customOut = new PrintStream(new OutputStream() {
-		    private StringBuilder sb = new StringBuilder();
+		    private ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 		    @Override
 		    public void write(int b) throws IOException {
-		        sb.append((char) b);
-		        if ((char) b == '\n') {
-		            JLabel label = new JLabel(sb.toString().trim());
-		            label.setPreferredSize(new Dimension(100, 30));
+		        if (b == '\n') {
+		            String output = baos.toString("UTF-8").trim();
+		            JLabel label = new JLabel(output);
 		            MainWindow.addComponent(label);
-		            sb = new StringBuilder(); // reset the StringBuilder for the next output
+		            baos.reset(); // reset the ByteArrayOutputStream for the next output
+		        } else {
+		            baos.write(b);
 		        }
 		    }
 		});
@@ -423,33 +437,12 @@ public class Curation {
 		
 		
 		
-		JMenu curationMenu = new JMenu("Curation");
-        
-        JMenuItem terminateCuration = new JMenuItem("Terminate/Delete Curation");
-        terminateCuration.addActionListener((ActionEvent e) -> closeCuration(true));
-        curationMenu.add(terminateCuration);
-        
-        JMenuItem saveCuration = new JMenuItem("Save Curation");
-        saveCuration.addActionListener((ActionEvent e) -> {
-        	// TODO: ADD INIT METHOD STOP
-        });
-        curationMenu.add(saveCuration);
-        
-        MainGUI.addMenuBarItem(curationMenu);
-		
-        
-		
-		
-		
-		
-		
 		
 		try {
 			metaYAML.createNewFile();
 		} catch (IOException ex) {
-			new ErrorDialog(new IOException("Cannot create meta.yaml file. Perhaps AutoFPCurator doesn't have sufficient permissions to access the directory?", ex));
+			new ErrorDialog(new IOException(errorStrs.get("metaYamlAccess"), ex));
 		}
-		
 
 		
 		
@@ -457,8 +450,7 @@ public class Curation {
 		String launchCommand = "";
 		if (SettingsManager.getSetting("lcDirDefOff").equals("true")) {
 			
-			launchCommand = MainGUI.input("Launch Command:", new KeyAdapter() {
-
+			launchCommand = MainGUI.input(curationStrs.get("lcPrompt"), new KeyAdapter() {
 				@Override
 				public void keyPressed(KeyEvent e) {
 
@@ -481,7 +473,7 @@ public class Curation {
 					UrlValidator urlValidator = new UrlValidator(schemes);
 
 					if (!urlValidator.isValid(text)) {
-						System.out.println("Invalid launch command.");
+						System.out.println(curationStrs.get("invalidLc"));
 						e.consume();
 						return;
 					}
@@ -493,41 +485,47 @@ public class Curation {
 			});
 			
 		} else {
-			launchCommand = SettingsManager.getSetting("lcDirDefault") + swfPath.getName();
+			launchCommand = SettingsManager.getSetting("lcDirDefault") + this.swfPath.getName();
 		}
 		
 		
 
 		
+		
+		
 		File lcDir = new File(this.curFolder + "/content/" + launchCommand.replaceAll("//|http|https|:|\\/\\/|/g", ""));
 		new File(lcDir.getParent()).mkdirs();
 		
+		
+		
+		
 		try {
-			System.out.println("Moving SWF file inside curation...");
-			Files.move(Paths.get(swfPath.toURI()), Paths.get(lcDir.toURI()));
-			swfPath = lcDir;
+			System.out.println(curationStrs.get("moveSWF"));
+			Files.move(Paths.get(this.swfPath.toURI()), Paths.get(lcDir.toURI()));
+			this.swfPath = lcDir;
 		} catch (IOException e1) {
-			new ErrorDialog(new IOException("Failed to move the opened file. You must move it manually.", e1));
+			new ErrorDialog(new IOException(errorStrs.get("moveSWF"), e1));
 		}
 		
 		
 		try {
-			System.out.println("Opening SWF file...");
-			Desktop.getDesktop().open(swfPath);
+			System.out.println(curationStrs.get("openSWF"));
+			Desktop.getDesktop().open(this.swfPath);
 		} catch (IOException e) {
-			new ErrorDialog(new IOException("Cannot open SWF file. You can manually open it here: " + swfPath, e));
+			new ErrorDialog(new IOException(errorStrs.get("openSWF") + this.swfPath, e));
 		}
 		
 		
 		
-		String logoSS = MainGUI.input("Take a screenshot containing the logo? (Y/N):", requireInput);
+		
+		String logoSS = MainGUI.input(curationStrs.get("logoPrompt"), requireInput);
 		switch (logoSS.toLowerCase()) {
 			case "y":
-				System.out.println("Opening image cropper...");
-				new Cropper(Screenshot.takeScreenshot(), new File(this.curFolder.getAbsolutePath() + "/logo.png"));
+				System.out.println(curationStrs.get("openCropper"));
+				new CropperManager(Screenshot.takeScreenshot(), new File(this.curFolder.getAbsolutePath() + "/logo.png"));
 				break;
 			default:
-				System.out.println("Not taking screenshot.");
+				System.out.println(curationStrs.get("noSS"));
 				break;
 		}
 		
@@ -541,39 +539,48 @@ public class Curation {
 		
 		
 		
-		String title = MainGUI.input("Title:", requireInput);
-		System.out.println("Checking for dupes...");
-		
-		if (Curation.dupeCheck(title)) {
+		String title = MainGUI.input(curationStrs.get("titlePrompt"), requireInput);
+		System.out.println(curationStrs.get("checkingDupes"));
+		if (Curation.checkPotentialDupes(title)) {
 			 return;
 		}
 		
 		
 		
+		
 		writeMeta("Title", title);
-		writeMeta("Alternate Titles", MainGUI.input("Alternate Titles:", null));
+		writeMeta("Alternate Titles", MainGUI.input(curationStrs.get("alternateTitlePrompt"), null));
 		
 		
 		
-		String curType = "";
-		if (SettingsManager.getSetting("libraryDefOff").equals("true")) {
-			curType = MainGUI.input("Game or animation? (G/A)", null).toLowerCase();
+		
+		if (readMeta("Library").orElse(null) == null) {
+
+			String curType = "";
+			
+			if (SettingsManager.getSetting("libraryDefOff").equals("true")) {
+				curType = MainGUI.input(curationStrs.get("gaPrompt"), null).toLowerCase();
+			} else {
+				curType = SettingsManager.getSetting("libraryDefault");
+			}
+			
+			switch (curType.toLowerCase()) {
+				case "arcade":
+				case "g":
+					writeMeta("Library", "arcade");
+					break;
+				case "theatre":
+				case "a":
+					writeMeta("Library", "theatre");
+					break;
+				default:
+					System.out.println(curationStrs.get("invalidOption") + curationStrs.get("defaultingTo") + "game.");
+					writeMeta("Library", "arcade");
+					break;
+			}
+
 		} else {
-			curType = SettingsManager.getSetting("libraryDefault");
-		}
-		switch (curType.toLowerCase()) {
-			case "arcade":
-			case "g":
-				writeMeta("Library", "arcade");
-				break;
-			case "theatre":
-			case "a":
-				writeMeta("Library", "theatre");
-				break;
-			default:
-				System.out.println("Invalid option entered. Defaulting to game.");
-				writeMeta("Library", "arcade");
-				break;
+			System.out.println("Library" + curationStrs.get("fieldAlreadyPresent"));
 		}
 		
 		
@@ -587,110 +594,137 @@ public class Curation {
 		
 		
 		
-		String dev = SettingsManager.getSetting("devDefOff").equals("true") ? CommonMethods.correctSeparators(MainGUI.input("Developer (separate with semicolons):", null), ";")
-						: SettingsManager.getSetting("devDefault");
-		
-		String publisher = SettingsManager.getSetting("publishDefOff").equals("true") ? CommonMethods.correctSeparators(MainGUI.input("Publisher (separate with semicolons):", null), ";")
-						: SettingsManager.getSetting("publishDefault");
-		
-		
-		
-		writeMeta("Series", MainGUI.input("Series:", null));
-		writeMeta("Developer", dev);
-		writeMeta("Publisher", publisher);
+		if (readMeta("Developer").orElse(null) == null) {
+			String dev = SettingsManager.getSetting("devDefOff").equals("true") ? CommonMethods.correctSeparators(MainGUI.input(curationStrs.get("devPrompt"), null), ";")
+							: SettingsManager.getSetting("devDefault");
+			writeMeta("Developer", dev);
+		} else {
+			System.out.println("Developer" + curationStrs.get("fieldAlreadyPresent"));
+		}
 		
 		
+		if (readMeta("Publisher").orElse(null) == null) {
+			String publisher = SettingsManager.getSetting("publishDefOff").equals("true") ? CommonMethods.correctSeparators(MainGUI.input(curationStrs.get("publishPrompt"), null), ";")
+							: SettingsManager.getSetting("publishDefault");
+			writeMeta("Publisher", publisher);
+		} else {
+			System.out.println("Publisher"  + curationStrs.get("fieldAlreadyPresent"));
+		}
+		
+		
+		if (readMeta("Series").orElse(null) == null) {
+			writeMeta("Series", MainGUI.input("Series:", null));
+		} else {
+			System.out.println("Series" + curationStrs.get("fieldAlreadyPresent"));
+		}
 		
 		
 		
 		
 		
-		
-		String playMode = "";
-		if (SettingsManager.getSetting("modeDefOff").equals("true")) {
+		if (readMeta("Play Mode").orElse(null) == null) {
 
-			playMode = MainGUI.input("Play mode (separate with semicolons, s - single player, m - multiplayer):",
-					new KeyAdapter() {
-						@Override
-						public void keyReleased(KeyEvent e) {
+			String playMode = "";
+			if (SettingsManager.getSetting("modeDefOff").equals("true")) {
 
-							if (e.getKeyCode() != KeyEvent.VK_ENTER) {
-								return;
-							}
+				playMode = MainGUI.input(curationStrs.get("playModePrompt"),
+						new KeyAdapter() {
+					
+							@Override
+							public void keyPressed(KeyEvent e) {
 
-							JTextField field = ((JTextField) e.getComponent());
-							String text = field.getText();
-							if (text.isEmpty()) {
-								e.consume();
-								return;
-							}
+								if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+									return;
+								}
 
-							text = CommonMethods.correctSeparators(
-									text.replaceAll("s", "Single Player").replaceAll("m", "Multiplayer").replaceAll("c", "Cooperative"), ";");
-
-							for (String mode : text.split(";")) {
-
-								if (!mode.equals("Single Player") && !mode.equals("Multiplayer") && !mode.equals("Cooperative")) {
-									System.out.println("You have inputted an invalid play mode.");
+								JTextField field = ((JTextField) e.getComponent());
+								String text = field.getText();
+								if (text.isEmpty()) {
 									e.consume();
 									return;
 								}
 
+								text = CommonMethods.correctSeparators(text.replaceAll("s", "Single Player")
+										.replaceAll("m", "Multiplayer").replaceAll("c", "Cooperative"), ";");
+
+								for (String mode : text.split(";")) {
+
+									mode = mode.trim();
+									if (!mode.equals("Single Player") && !mode.equals("Multiplayer")
+											&& !mode.equals("Cooperative")) {
+										System.out.println(curationStrs.get("invalidPlayMode"));
+										e.consume();
+										return;
+									}
+
+								}
+
+								field.setText(text);
+
 							}
+						});
 
-							field.setText(text);
+			} else {
+				playMode = SettingsManager.getSetting("modeDefault").replaceAll("s", "Single Player")
+						.replaceAll("m", "Multiplayer").replaceAll("c", "Cooperative");
+			}
+			writeMeta("Play Mode", playMode);
 
+		} else {
+			System.out.println("Play Mode" + curationStrs.get("fieldAlreadyPresent"));
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		if (readMeta("Release Date").orElse(null) == null) {
+			String releaseDate = "";
+			if (SettingsManager.getSetting("releaseDefOff").equals("true")) {
+
+				releaseDate = MainGUI.input(curationStrs.get("releasePrompt"), new KeyAdapter() {
+
+					@Override
+					public void keyPressed(KeyEvent e) {
+
+						if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+							return;
 						}
-					});
 
+						JTextField field = ((JTextField) e.getComponent());
+						String text = field.getText();
+						if (text.isEmpty()) {
+							return;
+						}
+
+						if (!CommonMethods.isValidDate(text)) {
+							System.out.println(curationStrs.get("invalidDate"));
+							e.consume();
+							return;
+						}
+
+					}
+				});
+			} else {
+				releaseDate = SettingsManager.getSetting("releaseDefault");
+			}
+			writeMeta("Release Date", releaseDate);
 		} else {
-			playMode = SettingsManager.getSetting("modeDefault").replaceAll("s", "Single Player").replaceAll("m", "Multiplayer").replaceAll("c", "Cooperative");
+			System.out.println("Release Date" + curationStrs.get("fieldAlreadyPresent"));
 		}
-		writeMeta("Play Mode", playMode);
 		
 		
 		
-		
-		
-		
-		
-		
-		
-		
-		String releaseDate = "";
-		if (SettingsManager.getSetting("releaseDefOff").equals("true")) {
-			
-			releaseDate = MainGUI.input("Release Date:", new KeyAdapter() {
-
-				@Override
-				public void keyReleased(KeyEvent e) {
-
-					if (e.getKeyCode() != KeyEvent.VK_ENTER) {
-						return;
-					}
-
-					JTextField field = ((JTextField) e.getComponent());
-					String text = field.getText();
-					if (text.isEmpty()) {
-						return;
-					}
-
-					if (!CommonMethods.isValidDate(text)) {
-						System.out.println("Invalid date.");
-						e.consume();
-						return;
-					}
-
-				}
-			});
+		if (readMeta("Version").orElse(null) == null) {
+			String version = SettingsManager.getSetting("verDefOff").equals("true") ? MainGUI.input(curationStrs.get("verPrompt"), null) : SettingsManager.getSetting("verDefault");
+			writeMeta("Version", version);
 		} else {
-			releaseDate = SettingsManager.getSetting("releaseDefault");
+			System.out.println("Version" + curationStrs.get("fieldAlreadyPresent"));
 		}
-		writeMeta("Release Date", releaseDate);
-		
-		
-		String version = SettingsManager.getSetting("verDefOff").equals("true") ? MainGUI.input("Version:", null) : SettingsManager.getSetting("verDefault");
-		writeMeta("Version", version);
 		
 		
 		
@@ -701,51 +735,58 @@ public class Curation {
 		
 //		String langs = CommonMethods.correctSeparators(MainGUI.input("Languages (separate with semicolons):", null), ";");
 		
-		String langs = "";
-		if (SettingsManager.getSetting("langDefOff").equals("true")) {
+		if (readMeta("Languages").orElse(null) == null) {
+			
+			String langs = "";
+			if (SettingsManager.getSetting("langDefOff").equals("true")) {
 
-			langs = MainGUI.input("Languages (separate wth semicolons):", new KeyAdapter() {
-				@SuppressWarnings("unchecked")
-				@Override
-				public void keyReleased(KeyEvent e) {
+				langs = MainGUI.input(curationStrs.get("languagePrompt"), new KeyAdapter() {
+					@SuppressWarnings("unchecked")
+					@Override
+					public void keyPressed(KeyEvent e) {
 
-					if (e.getKeyCode() != KeyEvent.VK_ENTER) {
-						return;
-					}
+						if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+							return;
+						}
 
-					JTextField field = ((JTextField) e.getComponent());
-					String text = field.getText();
-					if (text.isEmpty()) {
-						e.consume();
-						return;
-					}
-
-					text = CommonMethods.correctSeparators(text, ";");
-					Map<String, String> langs = (Map<String, String>) CommonMethods
-							.parseJSONStr(CommonMethods.getResource("langs.json"));
-
-					for (String lang : text.split(";")) {
-						if (!langs.containsKey(lang)) {
-							System.out.println(lang + " is not a vald language.");
+						JTextField field = ((JTextField) e.getComponent());
+						String text = field.getText();
+						if (text.isEmpty()) {
 							e.consume();
 							return;
 						}
+
+						text = CommonMethods.correctSeparators(text, ";");
+						Map<String, String> langs = (Map<String, String>) CommonMethods
+								.parseJSONStr(CommonMethods.getResource(curationDataDirPrefix + "langs.json"));
+
+						for (String lang : text.split(";")) {
+							lang = lang.trim();
+							if (!langs.containsKey(lang)) {
+								System.out.println(lang + curationStrs.get("invalidLanguage"));
+								e.consume();
+								return;
+							}
+						}
+
+						field.setText(text);
+
 					}
+				});
 
-					field.setText(text);
+			} else {
+				langs = SettingsManager.getSetting("langDefault");
+			}
 
-				}
-			});
+			if (langs.equals("")) {
+				System.out.println(curationStrs.get("noLanguage"));
+				writeMeta("Languages", "en");
+			} else {
+				writeMeta("Languages", langs);
+			}
 
 		} else {
-			langs = SettingsManager.getSetting("langDefault");
-		}
-		
-		if (langs.equals("")) {
-			System.out.println("No languages entered. Defaulting to en.");
-			writeMeta("Languages", "en");
-		} else {
-			writeMeta("Languages", langs);
+			System.out.println("Languages" + curationStrs.get("fieldAlreadyPresent"));
 		}
 		
 		
@@ -753,21 +794,21 @@ public class Curation {
 		
 		
 		
+		String tags = SettingsManager.getSetting("tagsDefOff").equals("true") ? CommonMethods.correctSeparators(
+				MainGUI.input(curationStrs.get("tagPrompt"), requireInput), ";"
+			)
+			: SettingsManager.getSetting("tagsDefault");
 		
-		
-		
-		String tags = SettingsManager.getSetting("tagsDefOff").equals("true") ? CommonMethods.correctSeparators(MainGUI.input("Tags (separate with semicolons):", requireInput), ";")
-				: SettingsManager.getSetting("tagsDefault");
 		writeMeta("Tags", tags);
 		
 		
-		
-		System.out.println("Generating tag categories...");
+
+		System.out.println(curationStrs.get("generatingTagCats"));
 		String tagCats = Curation.generateTagCats(tags);
-		
+
 		if (tagCats.equals("")) {
-			System.out.println("No tag categories were generated.");
-			writeMeta("Tag Categories", MainGUI.input("Tag Categories:", requireInput));
+			System.out.println(curationStrs.get("noTagCats"));
+			writeMeta("Tag Categories", MainGUI.input(curationStrs.get("tagCatPrompt"), requireInput));
 		} else {
 			writeMeta("Tag Categories", tagCats);
 		}
@@ -775,30 +816,36 @@ public class Curation {
 		
 		
 		
-		
-		
-		String src = "";
-		if (SettingsManager.getSetting("srcDefOff").equals("true")) {
+		if (readMeta("Source").orElse(null) == null) {
+			
+			String src = "";
+			if (SettingsManager.getSetting("srcDefOff").equals("true")) {
 
-			src = MainGUI.input("Source:", requireInput);
-			if (src.equals("")) {
-				System.out.println("Warning: No source entered. If this was a mistake, please fix it in meta.yaml.");
-			} else {
+				src = MainGUI.input(curationStrs.get("srcPrompt"), requireInput);
+				if (src.equals("")) {
+					System.out
+							.println();
+				} else {
 
-				String[] schemes = { "http" };
-				UrlValidator urlValidator = new UrlValidator(schemes);
+					String[] schemes = { "http", "https" };
+					UrlValidator urlValidator = new UrlValidator(schemes);
 
-				if (!urlValidator.isValid(src)) {
-					System.out.println(
-							"Warning: Source is an invalid URL. If this was a mistake, please fix it in meta.yaml.");
+					if (!urlValidator.isValid(src)) {
+						System.out.println(
+								curationStrs.get("nonURLSrc"));
+					}
+
 				}
 
+			} else {
+				src = SettingsManager.getSetting("srcDefault");
 			}
-
+			writeMeta("Source", src);
+			
 		} else {
-			src = SettingsManager.getSetting("srcDefault");
+			System.out.println("Source" + curationStrs.get("fieldAlreadyPresent"));
 		}
-		writeMeta("Source", src);
+		
 		writeMeta("Platform", "Flash");
 		
 		
@@ -808,55 +855,62 @@ public class Curation {
 		
 		
 		
-		
-		String status = "";
-		if (SettingsManager.getSetting("statusDefOff").equals("true")) {
+		if (readMeta("Status").orElse(null) == null) {
 			
-			status = MainGUI.input("Status (separate with semicolons, p - playable, pa - partial, h - hacked):",
-					new KeyAdapter() {
-						@Override
-						public void keyReleased(KeyEvent e) {
+			String status = "";
+			if (SettingsManager.getSetting("statusDefOff").equals("true")) {
 
-							if (e.getKeyCode() != KeyEvent.VK_ENTER) {
-								return;
-							}
+				status = MainGUI.input(curationStrs.get("statusPrompt"),
+						new KeyAdapter() {
+							@Override
+							public void keyPressed(KeyEvent e) {
 
-							JTextField field = ((JTextField) e.getComponent());
-							String text = field.getText();
-							if (text.isEmpty()) {
-								e.consume();
-								return;
-							}
+								if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+									return;
+								}
 
-							text = CommonMethods.correctSeparators(text.replaceAll("pa", "Partial")
-									.replaceAll("h", "Hacked").replaceAll("p", "Playable"), ";");
-
-							for (String status : text.split(";")) {
-
-								if (!status.equals("Partial") && !status.equals("Hacked")
-										&& !status.equals("Playable")) {
-									System.out.println("You have inputted an invalid status.");
+								JTextField field = ((JTextField) e.getComponent());
+								String text = field.getText();
+								if (text.isEmpty()) {
 									e.consume();
 									return;
 								}
 
+								text = CommonMethods.correctSeparators(text.replaceAll("pa", "Partial")
+										.replaceAll("h", "Hacked").replaceAll("p", "Playable"), ";");
+
+								for (String status : text.split(";")) {
+
+									status = status.trim();
+									if (!status.equals("Partial") && !status.equals("Hacked")
+											&& !status.equals("Playable")) {
+										System.out.println(curationStrs.get("invalidStatus"));
+										e.consume();
+										return;
+									}
+
+								}
+
+								field.setText(text);
+
 							}
+						});
 
-							field.setText(text);
+			} else {
+				status = SettingsManager.getSetting("statusDefault").replaceAll("pa", "Partial")
+						.replaceAll("h", "Hacked").replaceAll("p", "Playable");
+			}
+			
 
-						}
-					});
-
+			if (status.equals("")) {
+				System.out.println(curationStrs.get("noStatus"));
+				writeMeta("Status", "Playable");
+			} else {
+				writeMeta("Status", status);
+			}
+			
 		} else {
-			status = SettingsManager.getSetting("statusDefault").replaceAll("pa", "Partial").replaceAll("h", "Hacked").replaceAll("p", "Playable");
-		}
-		
-		
-		if (status.equals("")) {
-			System.out.println("No status entered. Defaulting to playable.");
-			writeMeta("Status", "Playable");
-		} else {
-			writeMeta("Status", status);
+			System.out.println("Status" + curationStrs.get("fieldAlreadyPresent"));
 		}
 		
 		
@@ -871,12 +925,20 @@ public class Curation {
 		
 		
 		
+		if (readMeta("Game Notes").orElse(null) == null) {
+			String gameNotes = SettingsManager.getSetting("gameNotesDefOff").equals("true") ? MainGUI.input(curationStrs.get("gameNotesPrompt"), null) : SettingsManager.getSetting("gameNotesDefault");
+			writeMeta("Game Notes", gameNotes);
+		} else {
+			System.out.println("Game Notes" + curationStrs.get("fieldAlreadyPresent"));
+		}
 		
-		String gameNotes = SettingsManager.getSetting("gameNotesDefOff").equals("true") ? MainGUI.input("Game Notes:", null) : SettingsManager.getSetting("gameNotesDefault");
-		String desc = SettingsManager.getSetting("descDefOff").equals("true") ? MainGUI.input("Original Description:", null) : SettingsManager.getSetting("descDefault");
-		
-		writeMeta("Game Notes", gameNotes);
-		writeMeta("Original Description", desc);
+		if (readMeta("Original Description").orElse(null) == null) {
+			String desc = SettingsManager.getSetting("descDefOff").equals("true") ? MainGUI.input(curationStrs.get("descPrompt"), null) : SettingsManager.getSetting("descDefault");
+			writeMeta("Original Description", desc);
+		} else {
+			System.out.println("Original Description" + curationStrs.get("fieldAlreadyPresent"));
+		}
+
 		writeMeta("Curation Notes", "");
 		writeMeta("Mount Parameters", "");
 		writeMeta("Additional Applications", "{}");
@@ -884,8 +946,11 @@ public class Curation {
 		
 		
 		
-		String ssConfirm = SettingsManager.getSetting("settingsDefOff").equals("true") ? MainGUI.input("Enter Yes/Y/[blank] to take a screenshot (PLEASE HAVE THE GAME OPEN!).", null)
-																					   : SettingsManager.getSetting("ssDefault");
+		String ssConfirm = SettingsManager.getSetting("settingsDefOff").equals("true") ? 
+				MainGUI.input(curationStrs.get("ssPrompt"), null)
+				: SettingsManager.getSetting("ssDefault");
+		
+		
 		
 		
 		switch (ssConfirm.toLowerCase()) {
@@ -902,25 +967,25 @@ public class Curation {
 				
 			}
 			default: {
-				System.out.println("Skipping screenshot. Be sure to manually add a screenshot to the curation.");
+				System.out.println(curationStrs.get("skipSS"));
 			}
 				
 		}
 		
 		
 		if (SettingsManager.getSetting("promptZipDefOff").equals("true")) {
-			MainGUI.input("Press enter to zip and close the curation.", null);
+			MainGUI.input(curationStrs.get("zipPrompt"), null);
 		}
-		System.out.println("Zipping curation...");
+		System.out.println(curationStrs.get("currentlyZipping"));
 		
 		
 		String out = SettingsManager.getSetting("zippedCurations") + "/" + this.curationId + ".7z";
 //		zipCuration();
-		CommonMethods.runExecutable("programs/7za.exe", "a \"" + out + "\" \"" + curFolder.getParentFile().getAbsolutePath() + "\"/*", true, true);
+		CommonMethods.runExecutable("programs/7za.exe", "a \"" + out + "\" \"" + curFolder.getAbsolutePath() + "\"/*", true, true);
 		
 		
-		System.out.println("Zipped curation.");
-		System.out.println("Closing curation...");
+		System.out.println(curationStrs.get("doneZipping"));
+		System.out.println(curationStrs.get("closingCuration"));
 		closeCuration(shouldCloseCurationView);
 
 		
@@ -946,6 +1011,14 @@ public class Curation {
 	
 	public File getMetaYaml() {
 		return this.metaYAML;
+	}
+	
+	public File getCurFolder() {
+		return this.curFolder;
+	}
+	
+	public File getSWF() {
+		return this.swfPath;
 	}
 
 }

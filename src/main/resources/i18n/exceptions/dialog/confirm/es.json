@@ -1,0 +1,4 @@
+{ 
+	"nullMessage": "El mensaje de confirmación es nulo",
+	"nullListener": "El escucha de confirmación es nulo"
+}

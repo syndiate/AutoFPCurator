@@ -1,28 +1,32 @@
 package org.syndiate.FPCurate;
 
-import com.sun.jna.Native;
-import com.sun.jna.Pointer;
-import com.sun.jna.platform.win32.GDI32;
-import com.sun.jna.platform.win32.WinDef.*;
-import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.User32Util;
-import com.sun.jna.platform.win32.WinGDI;
-import com.sun.jna.platform.win32.WinUser;
-
 import java.awt.AWTException;
+import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import javax.imageio.ImageIO;
 
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
+import org.syndiate.FPCurate.gui.cropper.CropperManager;
 
-@SuppressWarnings("unused")
+import com.sun.jna.Native;
+import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef.HWND;
+import com.sun.jna.platform.win32.WinDef.RECT;
+import com.sun.jna.platform.win32.WinUser;
+
 public class Screenshot {
 	
 	
+	
+	public static void main(String[] args) {
+		BufferedImage img = takeScreenshot();
+		new CropperManager(img, new File("C:/Test/ss-test.jpeg"));
+	}
 	
 	public static HWND findWindowHandle(String windowHandle) {
 		
@@ -51,13 +55,14 @@ public class Screenshot {
     }
 	
 	
-	// TODO: account for extraneous flash player window locations
+	
+	
 	public static BufferedImage takeScreenshot() {
 
 		HWND flashWindow = Screenshot.findWindowHandle("Adobe Flash Player");
 
 		if (flashWindow == null) {
-			System.out.println("Flash Player window not found");
+			System.out.println(I18N.getStrings("exceptions/curation").get("flashWindowNotFound"));
 			return null;
 		}
 
@@ -71,14 +76,45 @@ public class Screenshot {
 		int width = rect.right - rect.left;
 		int height = rect.bottom - rect.top;
 		
-
-		// Take a screenshot of the Flash Player projector window
-		// TODO: ADJUST THIS FOR DIFFERENT WINDOW POSITIONS, LOCATIONS, AND SIZES
+//		User32.INSTANCE.GetClientRect(flashWindow, rect);
+		
+/*
 		BufferedImage screenshot = null;
 		try {
-			screenshot = new Robot().createScreenCapture(new Rectangle(rect.left + 8, rect.top + 8, width - 15, height - 15));
+			System.out.println(rect.left);
+			System.out.println(rect.top);
+			System.out.println(width);
+			System.out.println(height);
+			screenshot = new Robot().createScreenCapture(new Rectangle(rect.left + 8, rect.top + 8, Math.abs(width - 15), Math.abs(height - 15)));
 		} catch (AWTException e) {
 			new ErrorDialog(e);
+		}*/
+		
+		
+		
+		// Take a screenshot of the Flash Player projector window
+		BufferedImage screenshot = null;
+		try {
+		    // Get the screen bounds
+		    Rectangle screenBounds = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+		    Rectangle flashBounds = new Rectangle(rect.left + 8, rect.top + 8, width - 15, height - 15);
+		    // Get the visible bounds of the window
+		    Rectangle visibleBounds = flashBounds.intersection(screenBounds);
+
+		    // Adjust the visible bounds to exclude overlapping elements like the taskbar
+		    Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration());
+		    visibleBounds.y += screenInsets.top;
+		    visibleBounds.height -= (screenInsets.top + screenInsets.bottom);
+
+		    // Check if the visible bounds have valid dimensions
+		    if (visibleBounds.width > 0 && visibleBounds.height > 0) {
+		        screenshot = new Robot().createScreenCapture(visibleBounds);
+		    } else {
+		        // Handle the case where the visible bounds have invalid dimensions
+		        System.out.println("The window is completely off-screen or has no visible area.");
+		    }
+		} catch (AWTException e) {
+		    new ErrorDialog(e);
 		}
 
 		return screenshot;

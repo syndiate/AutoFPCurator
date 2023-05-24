@@ -63,9 +63,6 @@ public class MainGUI {
 		JMenu fileMenu = new JMenu(menuBarStrings.get("file"));
 
 		
-		
-		
-		
 		JMenuItem openItem = new JMenuItem(fileMenuItemStrings.get("open"));
 		openItem.addActionListener((ActionEvent e) -> {
 			
@@ -81,13 +78,9 @@ public class MainGUI {
 			File selectedFile = fileChooser.getSelectedFile();
 			MainWindow.handleFile(selectedFile);
 		});
-		
-		
-		
-		
-		
 		CommonGUI.setMenuItemShortcut(openItem, KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK);
 		fileMenu.add(openItem);
+		
 		
 		
 

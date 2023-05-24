@@ -5,6 +5,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.util.Map;
 
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -14,23 +15,29 @@ import javax.swing.JTextField;
 import org.syndiate.FPCurate.I18N;
 import org.syndiate.FPCurate.gui.common.SettingsGUI;
 
-public class Paths extends JPanel {
+public class PathsPrefs extends JPanel {
 	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 4524266154820670769L;
 	private Map<String, String> pathsMenuStrs;
-
 	
 	
-	public Paths() {
+	public PathsPrefs() {
 
 		this.pathsMenuStrs = I18N.getStrings("settings/paths");
+		int gridRows = CurationPrefs.getRows();
 		
-		this.setLayout(new GridLayout(2, 2));
+		this.setLayout(new GridLayout(gridRows, 2));
 		this.createPathField("workingCurations");
 		this.createPathField("zippedCurations");
+		
+		// whitespace below the "real" components so that the "real" components don't take up the whole screen
+		// configure i to the amount of fields
+		for (int i = 2; i <= gridRows * 2; i++) {
+			this.add(Box.createVerticalBox());
+		}
         
 	}
 	

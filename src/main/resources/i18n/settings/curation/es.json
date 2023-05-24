@@ -1,0 +1,18 @@
+{
+	"lcDirDefault": "Pedir comando de lanzamiento, prefijo predeterminado:",
+	"libraryDefault": "Preguntar si la curación es un juego o una animación, predeterminado (G/A):",
+	"seriesDefault": "Pedir serie, predeterminado:",
+	"devDefault": "Pedir desarrollador, predeterminado:",
+	"publishDefault": "Pedir editor, predeterminado:",
+	"modeDefault": "Pedir modo de juego, predeterminado (s,m):",
+	"releaseDefault": "Pedir fecha de lanzamiento, predeterminado:",
+	"verDefault": "Pedir versión, predeterminado:",
+	"langDefault": "Pedir idiomas, predeterminado:",
+	"tagsDefault": "Pedir etiquetas, predeterminado:",
+	"srcDefault": "Pedir fuente, predeterminado:",
+	"statusDefault": "Pedir estado, predeterminado (p,pa,h):",
+	"gameNotesDefault": "Pedir notas del juego, predeterminado:",
+	"descDefault": "Pedir descripción original, predeterminado:",
+	"ssDefault": "Solicitar captura de pantalla, acción predeterminada (Y/N):",
+	"promptZipDefault": "Solicitar cierre de la curación, acción predeterminada (Y/N):"
+}
