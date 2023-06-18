@@ -13,6 +13,6 @@
 	"statusDefault": "Ask for status, default (p,pa,h):",
 	"gameNotesDefault": "Ask for game notes, default:",
 	"descDefault": "Ask for original description, default:",
-	"ssDefault": "Prompt screenshot, default action (Y/N):",
-	"promptZipDefault": "Prompt to close curation, default action (Y/N):"
+	"ssDefault": "Prompt screenshot, default action (Y/N) (DO NOT ENABLE IF NOT ON WINDOWS):",
+	"promptZipDefault": "Prompt to close curation, default action (Y/N) (DO NOT ENABLE IF NOT ON WINDOWS OR MAC):"
 }

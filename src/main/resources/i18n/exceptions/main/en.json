@@ -1,5 +1,5 @@
 { 
-	"windowsLookAndFeel": "Could not load Windows look and feel.",
+	"windowsLookAndFeel": "Could not load system look and feel.",
 	"swfOrZipFileRequired": "File must be of type SWF (ZIP is not currently supported, but may be in the future).",
 	"specifyPaths": "Please specify what paths you would like AutoFPCurator to store working/zipped curations in in Settings > Paths.",
 	"unableToReadMeta": "An error occurred when trying to read the meta.yaml file. Perhaps it was accidentally deleted?",

@@ -54,6 +54,7 @@ public class Curation {
 	
 	private static final Map<String, String> errorStrs = I18N.getStrings("exceptions/curation");
 	private static final Map<String, String> curationStrs = I18N.getStrings("curation");
+	private static final Map<String, String> commonStrs = I18N.getStrings("common");
 	
 	
 	private static final KeyAdapter requireInput = new KeyAdapter() {
@@ -464,10 +465,7 @@ public class Curation {
 						e.consume();
 						return;
 					}
-
-					if (!text.startsWith("http://") && !text.startsWith("https://")) {
-						text = "http://" + text;
-					}
+					text = CommonMethods.correctURL(text);
 
 					String[] schemes = { "http" };
 					UrlValidator urlValidator = new UrlValidator(schemes);
@@ -520,10 +518,19 @@ public class Curation {
 		
 		String logoSS = MainGUI.input(curationStrs.get("logoPrompt"), requireInput);
 		switch (logoSS.toLowerCase()) {
-			case "y":
+			case "y": {
+				
+				
+				if (!CommonMethods.getOperatingSystem().equals("Windows")) {
+					System.out.println(commonStrs.get("unsupportedOS"));
+					break;
+				}
 				System.out.println(curationStrs.get("openCropper"));
 				new CropperManager(Screenshot.takeScreenshot(), new File(this.curFolder.getAbsolutePath() + "/logo.png"));
 				break;
+				
+				
+			}
 			default:
 				System.out.println(curationStrs.get("noSS"));
 				break;
@@ -794,12 +801,16 @@ public class Curation {
 		
 		
 		
+		
 		String tags = SettingsManager.getSetting("tagsDefOff").equals("true") ? CommonMethods.correctSeparators(
 				MainGUI.input(curationStrs.get("tagPrompt"), requireInput), ";"
 			)
 			: SettingsManager.getSetting("tagsDefault");
 		
 		writeMeta("Tags", tags);
+		
+		
+		
 		
 		
 
@@ -816,35 +827,38 @@ public class Curation {
 		
 		
 		
+		
+		
+		
 		if (readMeta("Source").orElse(null) == null) {
+			
 			
 			String src = "";
 			if (SettingsManager.getSetting("srcDefOff").equals("true")) {
+				
 
 				src = MainGUI.input(curationStrs.get("srcPrompt"), requireInput);
-				if (src.equals("")) {
-					System.out
-							.println();
-				} else {
+				String[] schemes = { "http", "https" };
+				UrlValidator urlValidator = new UrlValidator(schemes);
 
-					String[] schemes = { "http", "https" };
-					UrlValidator urlValidator = new UrlValidator(schemes);
-
-					if (!urlValidator.isValid(src)) {
-						System.out.println(
-								curationStrs.get("nonURLSrc"));
-					}
-
+				if (!urlValidator.isValid(src)) {
+					System.out.println(curationStrs.get("nonURLSrc"));
 				}
+				
 
 			} else {
 				src = SettingsManager.getSetting("srcDefault");
 			}
 			writeMeta("Source", src);
 			
+			
 		} else {
 			System.out.println("Source" + curationStrs.get("fieldAlreadyPresent"));
 		}
+		
+		
+		
+		
 		
 		writeMeta("Platform", "Flash");
 		
@@ -864,6 +878,9 @@ public class Curation {
 						new KeyAdapter() {
 							@Override
 							public void keyPressed(KeyEvent e) {
+								
+								
+								
 
 								if (e.getKeyCode() != KeyEvent.VK_ENTER) {
 									return;
@@ -875,6 +892,7 @@ public class Curation {
 									e.consume();
 									return;
 								}
+								
 
 								text = CommonMethods.correctSeparators(text.replaceAll("pa", "Partial")
 										.replaceAll("h", "Hacked").replaceAll("p", "Playable"), ";");
@@ -884,14 +902,18 @@ public class Curation {
 									status = status.trim();
 									if (!status.equals("Partial") && !status.equals("Hacked")
 											&& !status.equals("Playable")) {
+										
 										System.out.println(curationStrs.get("invalidStatus"));
 										e.consume();
 										return;
+										
 									}
 
 								}
 
 								field.setText(text);
+								
+								
 
 							}
 						});
@@ -902,6 +924,10 @@ public class Curation {
 			}
 			
 
+			
+			
+			
+			
 			if (status.equals("")) {
 				System.out.println(curationStrs.get("noStatus"));
 				writeMeta("Status", "Playable");
@@ -909,9 +935,18 @@ public class Curation {
 				writeMeta("Status", status);
 			}
 			
+			
+			
 		} else {
 			System.out.println("Status" + curationStrs.get("fieldAlreadyPresent"));
 		}
+		
+		
+		
+		
+		
+		
+		
 		
 		
 		
@@ -925,19 +960,32 @@ public class Curation {
 		
 		
 		
+		
 		if (readMeta("Game Notes").orElse(null) == null) {
+			
 			String gameNotes = SettingsManager.getSetting("gameNotesDefOff").equals("true") ? MainGUI.input(curationStrs.get("gameNotesPrompt"), null) : SettingsManager.getSetting("gameNotesDefault");
 			writeMeta("Game Notes", gameNotes);
+			
 		} else {
 			System.out.println("Game Notes" + curationStrs.get("fieldAlreadyPresent"));
 		}
 		
+		
+		
+		
+		
 		if (readMeta("Original Description").orElse(null) == null) {
+			
 			String desc = SettingsManager.getSetting("descDefOff").equals("true") ? MainGUI.input(curationStrs.get("descPrompt"), null) : SettingsManager.getSetting("descDefault");
 			writeMeta("Original Description", desc);
+			
 		} else {
 			System.out.println("Original Description" + curationStrs.get("fieldAlreadyPresent"));
 		}
+		
+		
+		
+		
 
 		writeMeta("Curation Notes", "");
 		writeMeta("Mount Parameters", "");
@@ -946,7 +994,9 @@ public class Curation {
 		
 		
 		
-		String ssConfirm = SettingsManager.getSetting("settingsDefOff").equals("true") ? 
+		
+		
+		String ssConfirm = SettingsManager.getSetting("ssDefOff").equals("true") ? 
 				MainGUI.input(curationStrs.get("ssPrompt"), null)
 				: SettingsManager.getSetting("ssDefault");
 		
@@ -958,6 +1008,11 @@ public class Curation {
 			case "yes":
 			case "y":
 			case "": {
+				
+				if (!CommonMethods.getOperatingSystem().equals("Windows")) {
+					System.out.println(commonStrs.get("unsupportedOS"));
+					break;
+				}
 				try {
 					ImageIO.write(Screenshot.takeScreenshot(), "png", new File(this.curFolder.getAbsolutePath() + "/ss.png"));
 				} catch (IOException e) {
@@ -973,15 +1028,50 @@ public class Curation {
 		}
 		
 		
+		
+		
 		if (SettingsManager.getSetting("promptZipDefOff").equals("true")) {
 			MainGUI.input(curationStrs.get("zipPrompt"), null);
 		}
 		System.out.println(curationStrs.get("currentlyZipping"));
 		
 		
+		
+		
+		
+		
 		String out = SettingsManager.getSetting("zippedCurations") + "/" + this.curationId + ".7z";
-//		zipCuration();
-		CommonMethods.runExecutable("programs/7za.exe", "a \"" + out + "\" \"" + curFolder.getAbsolutePath() + "\"/*", true, true);
+		String exeString = "";
+		String args = "a \"" + out + "\" \"" + curFolder.getAbsolutePath() + "\"/*";
+		
+		
+		switch (CommonMethods.getOperatingSystem()) {
+			 case "Windows":
+				 exeString = "programs/7zip/7za.exe";
+				 break;
+			 case "Mac":
+			 //case "Linux":
+				 exeString = "programs/7zip/7zzmac.bin";
+				 break;
+			 default: {
+				 
+				 System.out.println(commonStrs.get("unsupportedOS"));
+				 MainGUI.input(curationStrs.get("manualZipPrompt"), null);
+				 closeCuration(shouldCloseCurationView);
+				 
+			 }
+		}
+		
+		
+		
+		CommonMethods.runExecutable(exeString, args, true, true);
+		
+		// what to do in case the zipping procedure fails (specifically tailored to macOS)
+		if (!new File(out).exists()) {
+			System.out.println(curationStrs.get("zippingError"));
+			MainGUI.input(curationStrs.get("manualZipPrompt"), null);
+			closeCuration(shouldCloseCurationView);
+		}
 		
 		
 		System.out.println(curationStrs.get("doneZipping"));

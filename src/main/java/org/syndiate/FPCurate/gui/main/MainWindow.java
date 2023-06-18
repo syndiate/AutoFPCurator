@@ -13,7 +13,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -23,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -92,9 +90,8 @@ public class MainWindow {
 	
 	public MainWindow() {
 		
-
 		try {
-			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
 			new ErrorDialog(new Exception(exStrs.get("windowsLookAndFeel"), e));
 		}
@@ -148,14 +145,8 @@ public class MainWindow {
 		frmAPCurator.add(mainPanel, BorderLayout.CENTER);
 		frmAPCurator.revalidate();
 		frmAPCurator.repaint();
-		
-		
-		// load the icon
-		try {
-			frmAPCurator.setIconImage(ImageIO.read(new ByteArrayInputStream(CommonMethods.getResourceByte("logo.png"))));
-		} catch (IOException e) {
-			new ErrorDialog(new IOException("Failed to set icon.", e));
-		}
+
+		CommonGUI.setIconImage(frmAPCurator, "logo.png");
 		
 	}
 	

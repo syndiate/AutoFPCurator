@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.syndiate</groupId>
 	<artifactId>FPCurate</artifactId>
-	<version>1.1</version>
+	<version>1.2</version>
 	<name>AutoFPCurator</name>
 	<description>A tool for automatically generating/zipping curations for Flashpoint.</description>
 	<properties>
@@ -47,10 +47,10 @@
 			<version>5.13.0</version>
 		</dependency>
 		<dependency>
-  			<groupId>junit</groupId>
-  			<artifactId>junit-dep</artifactId>
-  			<version>4.11</version>
-  			<scope>test</scope>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>5.9.1</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 	<build>

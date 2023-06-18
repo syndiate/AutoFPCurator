@@ -3,15 +3,13 @@ package org.syndiate.FPCurate.gui.cropper;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
-import org.syndiate.FPCurate.CommonMethods;
-import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
+import org.syndiate.FPCurate.gui.common.CommonGUI;
 
 
 // https://github.com/lewiswhitaker1/ImageCropToSquare/blob/main/src/me/lewis/cropper/Cropper.java
@@ -53,11 +51,7 @@ public class CropperManager {
         cropperFrame.toFront();
         cropperFrame.requestFocus();
         cropperFrame.setResizable(false);
-        try {
-			cropperFrame.setIconImage(ImageIO.read(new ByteArrayInputStream(CommonMethods.getResourceByte("logo.png"))));
-		} catch (IOException e) {
-			new ErrorDialog(e);
-		}
+        CommonGUI.setIconImage(cropperFrame, "logo.png");
     }
     
     public static void closeGUI() {

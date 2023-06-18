@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -92,18 +94,37 @@ public class CommonMethods {
 	public static void runExecutable(String filePath, String command, boolean commandLine, boolean wait) {
 		
 		InputStream inputStream = CommonMethods.class.getClassLoader().getResourceAsStream(filePath);
+		String tempFileSuffix = "";
+		switch (CommonMethods.getOperatingSystem()) {
+			case "Windows":
+				tempFileSuffix = ".exe";
+				break;
+			case "Linux":
+			case "Mac":
+				tempFileSuffix = ".bin";
+				break;
+		}
+		
+		
 		
 		File tempFile;
 		try {
-			tempFile = File.createTempFile("AutoFPCurator", ".exe");
+			tempFile = File.createTempFile("AutoFPCurator", tempFileSuffix);
+			
+			if (CommonMethods.getOperatingSystem().equals("Mac") || CommonMethods.getOperatingSystem().equals("Linux")) {
+				Files.setPosixFilePermissions(tempFile.toPath(), PosixFilePermissions.fromString("rwxr-x---"));
+			}
+			
 		} catch (IOException e) {
 			new ErrorDialog(e);
 			return;
 		}
+		
+		
+		
 //		tempFile.deleteOnExit();
-		
-		
 
+		
 		try (FileOutputStream outputStream = new FileOutputStream(tempFile)) {
 		    byte[] buffer = new byte[1024];
 		    int length;
@@ -118,8 +139,27 @@ public class CommonMethods {
 		
 		
 		
+		
+		String cmdProgram = "";
+		String cFlag = "-c";
+		switch (CommonMethods.getOperatingSystem()) {
+			case "Windows": 
+				cmdProgram = "cmd.exe";
+				cFlag = "/c";
+				break;
+			case "Mac":
+				cmdProgram = "sh";
+				break;
+			case "Linux":
+				cmdProgram = "bash";
+				break;
+			default:
+				return;
+		}
+		
 		ProcessBuilder processBuilder = !commandLine ? new ProcessBuilder(tempFile.getAbsolutePath(), command)
-								: new ProcessBuilder("cmd.exe", "/c", tempFile.getAbsolutePath() + " " + command);
+//								: new ProcessBuilder(cmdProgram, cFlag, tempFile.getAbsolutePath() + " " + command);
+								: new ProcessBuilder(cmdProgram, cFlag, tempFile.getAbsolutePath(), command);
 		processBuilder.redirectErrorStream(true);
 		
 		
@@ -130,8 +170,6 @@ public class CommonMethods {
 			new ErrorDialog(e);
 			return;
 		}
-		
-		
 		if (!wait) {
 			return;
 		}
@@ -196,6 +234,16 @@ public class CommonMethods {
 	
 	
 	
+	public static String correctURL(String url) {
+		if (!url.startsWith("http://") && !url.startsWith("https://")) {
+			url = "http://" + url;
+		}
+		return url;
+	}
+	
+	
+	
+	
 	
 	// the string is split and joined to prevent any stray semicolons (separators) at the start or end of the value
 	public static String correctSeparators(String input, String delimiter) {
@@ -233,6 +281,25 @@ public class CommonMethods {
 	    }
 	    return false;
 	}
+	
+	
+	
+	
+	
+	
+	public static String getOperatingSystem() {
+        String os = System.getProperty("os.name").toLowerCase();
+        
+        if (os.contains("win")) {
+            return "Windows";
+        } else if (os.contains("mac")) {
+            return "Mac";
+        } else if (os.contains("nix") || os.contains("nux") || os.contains("aix")) {
+            return "Linux";
+        } else {
+            return "Unknown";
+        }
+    }
 
 	
 	

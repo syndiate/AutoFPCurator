@@ -13,6 +13,6 @@
 	"statusDefault": "Pedir estado, predeterminado (p,pa,h):",
 	"gameNotesDefault": "Pedir notas del juego, predeterminado:",
 	"descDefault": "Pedir descripción original, predeterminado:",
-	"ssDefault": "Solicitar captura de pantalla, acción predeterminada (Y/N):",
-	"promptZipDefault": "Solicitar cierre de la curación, acción predeterminada (Y/N):"
+	"ssDefault": "Captura de pantalla del aviso, acción predeterminada (Y/N) (NO ACTIVAR SI NO ESTÁ EN WINDOWS):",
+	"promptZipDefault": "Indicación para cerrar la curación, acción predeterminada (S/N) (NO ACTIVAR SI NO ESTÁ EN WINDOWS O MAC):"
 }
