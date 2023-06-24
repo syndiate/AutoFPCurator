@@ -1,0 +1,4 @@
+{
+	"appVersion": "1.2.1",
+	"changelog": " * You can now open an existing curation folder and AutoFPCurator will pick up back where you left off.\n * Added new utilities related to the logo and screenshot for the Curation tab\n * Added a manual for starters\n * Added an automatic updater\n * Fixed bug preventing the preferences window from opening\n * Fixed zipping...for the last time\n * Other bug fixes"
+}

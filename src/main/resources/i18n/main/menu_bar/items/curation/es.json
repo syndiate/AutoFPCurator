@@ -1,7 +1,16 @@
-{ 
-	"openCuration": "Abrir curación en el Explorador",
+{
+	"openCuration": "Abrir curación en el explorador",
 	"openSWF": "Abrir SWF",
-	"openLogo": "Abrir logotipo en recortador de imágenes",
 	"delCuration": "Terminar/Eliminar curación",
-	"saveCuration": "Guardar curación"
+	"saveCuration": "Guardar curación",
+	"clearCurationView": "Limpiar vista de curación",
+	"logoSSOptions": "Logotipo/SS",
+	
+	"openLogo": "Abrir logotipo guardado en recortador de imágenes",
+	"takeSS": "Tomar captura de pantalla",
+	"uploadLogoClipboard": "Subir logotipo del portapapeles",
+	"uploadSSClipboard": "Subir captura de pantalla del portapapeles",
+	"logoClipboardSaved": "Logotipo del portapapeles guardado.",
+	"ssClipboardSaved": "Captura de pantalla del portapapeles guardada.",
+	"noClipboardImage": "No se encontraron datos de imagen en el portapapeles."
 }

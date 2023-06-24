@@ -11,6 +11,7 @@
 	"invalidOption": "Invalid option entered.",
 	"defaultingTo": "Defaulting to ",
 	"fieldAlreadyPresent": " field already present. Skipping prompt.",
+	"foundInCuration": " found in curation. Skipping prompt.",
 	"noSS": "Not taking screenshot.",
 	
 	

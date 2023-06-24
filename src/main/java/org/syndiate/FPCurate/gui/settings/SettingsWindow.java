@@ -118,6 +118,8 @@ public class SettingsWindow extends JFrame {
 	
 	
 	
+	
+	
 	public static void queueSetting(String key, String value) {
 		if (SettingsManager.getSetting(key).equals(value)) {
 			SettingsWindow.queuedSettings.remove(key);
@@ -133,6 +135,9 @@ public class SettingsWindow extends JFrame {
 	public static void unqueueSetting(String key) {
 		SettingsWindow.queuedSettings.remove(key);
 	}
+	
+	
+	
 	
 	
 	
@@ -161,6 +166,23 @@ public class SettingsWindow extends JFrame {
 			public void onCancel() {}
 			
 		});
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static Object[] settingChoicesArr(Map<String, String> listOfOptions) {
+		
+		final ArrayList<String> items = new ArrayList<>();
+		for (Map.Entry<String, String> entry : listOfOptions.entrySet()) {
+			items.add(entry.getValue());
+		}
+		return items.toArray();
+		
 	}
 	
 	

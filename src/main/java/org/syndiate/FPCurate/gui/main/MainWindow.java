@@ -9,17 +9,23 @@ import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.BoxLayout;
@@ -41,14 +47,19 @@ import javax.swing.event.DocumentEvent;
 import org.syndiate.FPCurate.CommonMethods;
 import org.syndiate.FPCurate.Curation;
 import org.syndiate.FPCurate.I18N;
+import org.syndiate.FPCurate.Screenshot;
 import org.syndiate.FPCurate.SettingsManager;
+import org.syndiate.FPCurate.Updater;
 import org.syndiate.FPCurate.gui.common.CommonGUI;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmDialog;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmationListener;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 import org.syndiate.FPCurate.gui.common.dialog.GenericDialog;
 import org.syndiate.FPCurate.gui.cropper.CropperManager;
+import org.syndiate.FPCurate.gui.main.startup.ChangelogDialog;
+import org.syndiate.FPCurate.gui.manual.ManualWindow;
 import org.syndiate.FPCurate.gui.settings.DocumentChangeListener;
+import org.syndiate.FPCurate.gui.updater.UpdaterWindow;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.error.YAMLException;
 
@@ -98,6 +109,7 @@ public class MainWindow {
 		
 		loadWelcomeScreen();
 		frmAPCurator.setVisible(true);
+		initStartupProcedure();
 
 	}
 	
@@ -108,7 +120,6 @@ public class MainWindow {
 	
 	
 	public static void loadWelcomeScreen() {
-		
 		
 		Map<String, String> messageStrs = I18N.getStrings("main/message");
 		
@@ -125,7 +136,7 @@ public class MainWindow {
 		
 
 		
-		frmAPCurator.setTitle("AutoFPCurator");
+		frmAPCurator.setTitle("AutoFPCurator [v" + Updater.getAppVersion() + "]");
 		frmAPCurator.setSize(1280, 720);
 		frmAPCurator.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmAPCurator.setLocationRelativeTo(null);
@@ -150,6 +161,68 @@ public class MainWindow {
 		
 	}
 	
+	
+	
+	
+	
+	
+	
+	public static void initStartupProcedure() {
+		
+		
+		Map<String, String> startupStrs = I18N.getStrings("main/startup");
+		
+		
+		if (SettingsManager.getSetting("hasOpenedAutoFPCurator").equals("false")) {
+			
+			
+			CompletableFuture<Boolean> hasSeenManual = new CompletableFuture<>();
+			new ConfirmDialog(startupStrs.get("youreNew"), new ConfirmationListener() {
+				
+				public void onConfirm() {
+					new ManualWindow();
+					hasSeenManual.complete(true);
+				}
+				public void onCancel() {
+					hasSeenManual.complete(true);
+				}
+				
+			});
+			
+			try {
+				hasSeenManual.get();
+			} catch (InterruptedException | ExecutionException e) {
+				new ErrorDialog(e);
+			}
+			
+			SettingsManager.saveSetting("hasOpenedAutoFPCurator", "true");
+
+			
+		}
+		
+		
+		
+		
+		if (SettingsManager.getSetting("lastUsedVersion").equals("")) {
+			SettingsManager.saveSetting("lastUsedVersion", Updater.getAppVersion());
+		}
+		if (CommonMethods.compareVersions(Updater.getAppVersion(), SettingsManager.getSetting("lastUsedVersion"))) {
+			SettingsManager.saveSetting("hasSeenLatestUpdate", "true");
+		}
+		
+		
+		
+		if (SettingsManager.getSetting("hasSeenLatestUpdate").equals("false")) {
+			new ChangelogDialog();
+			SettingsManager.saveSetting("hasSeenLatestUpdate", "true");
+		}
+		
+		
+		if (SettingsManager.getSetting("updateCheck").equals("startup")) {
+			new UpdaterWindow();
+		}
+		
+	}
 	
 	
 	
@@ -218,6 +291,8 @@ public class MainWindow {
         tabbedPane.setSize(Toolkit.getDefaultToolkit().getScreenSize());
         
         
+        JScrollPane mainPanelHost = new JScrollPane(mainPanel);
+        mainPanelHost.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         
         
         tabbedPane.addTab(mainMiscStrs.get("mainTab"), new JScrollPane(mainPanel));
@@ -301,7 +376,7 @@ public class MainWindow {
 			
 			
 			
-			
+			/*
 			JMenuItem openCropper = new JMenuItem(curationItems.get("openLogo"));
 			openCropper.addActionListener((ActionEvent ev) -> {
 				File logoPath = new File(mainCuration.getCurFolder().getAbsolutePath() + "/logo.png");
@@ -312,8 +387,8 @@ public class MainWindow {
 				}
 			});
 			CommonGUI.setMenuItemShortcut(openCropper, KeyEvent.VK_I, KeyEvent.CTRL_DOWN_MASK);
-			curationMenu.add(openCropper);
-
+			curationMenu.add(openCropper);*/
+			
 			
 			
 			
@@ -327,9 +402,149 @@ public class MainWindow {
 				});
 			});
 			curationMenu.add(terminateCuration);
+			
+			
+			
+			
+			JMenuItem clearCurationView = new JMenuItem(curationItems.get("clearCurationView"));
+			clearCurationView.addActionListener((ActionEvent ev) -> {
+				
+				int componentCount = mainPanel.getComponentCount();
+				// ensure not to clear the last-added component (the current prompt)
+				for (int i = 0; i < componentCount - 1; i++) {
+				    mainPanel.remove(0);
+				}
+				mainPanel.revalidate();
+				mainPanel.repaint();
+
+			});
+			curationMenu.add(clearCurationView);
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			{
+				JMenu logoSSOptions = new JMenu(curationItems.get("logoSSOptions"));
+			
+				
+				
+				JMenuItem openCropper = new JMenuItem(curationItems.get("openLogo"));
+				openCropper.addActionListener((ActionEvent ev) -> {
+					File logoPath = new File(mainCuration.getCurFolder().getAbsolutePath() + "/logo.png");
+					try {
+						new CropperManager(logoPath, logoPath);
+					} catch (IOException ex) {
+						ex.printStackTrace();
+					}
+				});
+				CommonGUI.setMenuItemShortcut(openCropper, KeyEvent.VK_I, KeyEvent.CTRL_DOWN_MASK);
+				logoSSOptions.add(openCropper);
+				
+				
+				
+				
+				
+				JMenuItem takeSS = new JMenuItem(curationItems.get("takeSS"));
+				takeSS.addActionListener((ActionEvent e) -> {
+					
+					try {
+						mainCuration.writeCurImage(Screenshot.takeScreenshot(), "ss");
+					} catch (IOException e1) {
+						new GenericDialog(I18N.getStrings("exceptions/curation").get("flashWindowNotFound"));
+					}
+					
+				});
+				CommonGUI.setMenuItemShortcut(takeSS, KeyEvent.VK_S, KeyEvent.ALT_DOWN_MASK);
+				logoSSOptions.add(takeSS);
+			
+				
+				
+				
+				
+				
+				JMenuItem uploadLogoClipboard = new JMenuItem(curationItems.get("uploadLogoClipboard"));
+				uploadLogoClipboard.addActionListener((ActionEvent ev) -> {
+					
+					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		            if (clipboard.isDataFlavorAvailable(DataFlavor.imageFlavor)) {
+		            	
+		                BufferedImage image;
+						try {
+							image = (BufferedImage) clipboard.getData(DataFlavor.imageFlavor);
+						} catch (UnsupportedFlavorException | IOException imageReadEx) {
+							new ErrorDialog(imageReadEx);
+							return;
+						}
+		                
+		                try {
+							mainCuration.writeCurImage(image, "logo");
+						} catch (IOException ioEx) {
+							new ErrorDialog(ioEx);
+							return;
+						}
+		                
+		                new GenericDialog(curationItems.get("logoClipboardSaved"));
+		                return;
+		                
+		                
+		            }
+		            new GenericDialog(curationItems.get("noClipboardImage"));
+		            
+				});
+			
+				logoSSOptions.add(uploadLogoClipboard);
+			
+				
+				
+				
+				
+				JMenuItem uploadSSClipboard = new JMenuItem(curationItems.get("uploadSSClipboard"));
+				uploadSSClipboard.addActionListener((ActionEvent ev) -> {
+					
+					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		            if (clipboard.isDataFlavorAvailable(DataFlavor.imageFlavor)) {
+		            	
+		            	
+		                BufferedImage image;
+						try {
+							image = (BufferedImage) clipboard.getData(DataFlavor.imageFlavor);
+						} catch (UnsupportedFlavorException | IOException imageReadEx) {
+							new ErrorDialog(imageReadEx);
+							return;
+						}
+		                
+		                try {
+							mainCuration.writeCurImage(image, "ss");
+						} catch (IOException ioEx) {
+							new ErrorDialog(ioEx);
+							return;
+						}
+		                
+		                new GenericDialog(curationItems.get("ssClipboardSaved"));
+		                return;
+		                
+		            }
+		            new GenericDialog(curationItems.get("noClipboardImage"));
+		            
+				});
+			
+				logoSSOptions.add(uploadSSClipboard);
+				
+				
+				curationMenu.add(logoSSOptions);
+			}
+			
 
 
-			MainGUI.addMenuBarItem(curationMenu);
+			MainGUI.addMenuBarItem(curationMenu, 1);
         }
         
         
@@ -354,13 +569,34 @@ public class MainWindow {
 		    @Override
 		    protected Void doInBackground() {
 		    	
+		    	
+		    	
 		    	if (swfFile.isDirectory()) {
+
+		    		
+		    		String dirName = swfFile.getAbsolutePath();
+		    		if (new File(dirName + File.separator + "meta.yaml").exists()) {
+		    	        	
+		    			String curationUUID = Paths.get(dirName).getFileName().toString();
+		    	        if (curationUUID.endsWith("/")) {
+		    	        	curationUUID = curationUUID.substring(0, curationUUID.length() - 1);
+		    	        }
+		    	            
+		    	        mainCuration = new Curation(curationUUID);
+		    	        mainCuration.init(swfFile, true);
+		    	        return null;
+		    	        
+		    	    }
 		    		new Curation(swfFile);
+		    		
+		    		
 		    	} else {
 		    		mainCuration = new Curation();
 		    		mainCuration.init(swfFile, true);
 		    	}
 		        return null;
+		        
+		        
 		        
 		    }
 

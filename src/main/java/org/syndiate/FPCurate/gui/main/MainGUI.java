@@ -27,7 +27,9 @@ import org.syndiate.FPCurate.gui.common.CommonGUI;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmDialog;
 import org.syndiate.FPCurate.gui.common.dialog.ConfirmationListener;
 import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
+import org.syndiate.FPCurate.gui.manual.ManualWindow;
 import org.syndiate.FPCurate.gui.settings.SettingsWindow;
+import org.syndiate.FPCurate.gui.updater.UpdaterWindow;
 
 
 
@@ -49,8 +51,9 @@ public class MainGUI {
 	public static JMenuBar initMenuBar() {
 		
 
-		Map<String, String> menuBarStrings = I18N.getStrings("main/menu_bar");
-		Map<String, String> fileMenuItemStrings = I18N.getStrings("main/menu_bar/popups/file");
+		Map<String, String> menuBarStrs = I18N.getStrings("main/menu_bar");
+		Map<String, String> fileMenuItemStrs = I18N.getStrings("main/menu_bar/items/file");
+		Map<String, String> helpMenuItemStrs = I18N.getStrings("main/menu_bar/items/help");
 		Map<String, String> dialogMsgs = I18N.getStrings("dialog/messages");
 		
 		
@@ -59,80 +62,126 @@ public class MainGUI {
 		menuBar.setBackground(Color.WHITE);
 
 		
-
-		JMenu fileMenu = new JMenu(menuBarStrings.get("file"));
+		
+		
+		
+		
+		
+		
+		
+		
+		{
+			JMenu fileMenu = new JMenu(menuBarStrs.get("file"));
 
 		
-		JMenuItem openItem = new JMenuItem(fileMenuItemStrings.get("open"));
-		openItem.addActionListener((ActionEvent e) -> {
+			JMenuItem openItem = new JMenuItem(fileMenuItemStrs.get("open"));
+			openItem.addActionListener((ActionEvent e) -> {
 			
 
-			JFileChooser fileChooser = new JFileChooser();
-			fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+				JFileChooser fileChooser = new JFileChooser();
+				fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 
-			int result = fileChooser.showOpenDialog(null);
-			if (result != JFileChooser.APPROVE_OPTION) {
-				return;
-			}
-
-			File selectedFile = fileChooser.getSelectedFile();
-			MainWindow.handleFile(selectedFile);
-		});
-		CommonGUI.setMenuItemShortcut(openItem, KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK);
-		fileMenu.add(openItem);
-		
-		
-		
-
-		
-		JMenuItem preferences = new JMenuItem(fileMenuItemStrings.get("preferences"));
-		preferences.addActionListener((ActionEvent e) -> {
-			new SettingsWindow();
-		});
-		CommonGUI.setMenuItemShortcut(preferences, KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK);
-		fileMenu.add(preferences);
-		
-		
-		
-		
-		JMenuItem restart = new JMenuItem(fileMenuItemStrings.get("restart"));
-		restart.addActionListener((ActionEvent e) -> {
-
-			new ConfirmDialog(dialogMsgs.get("restartConfirmation"), new ConfirmationListener() {
-
-				public void onConfirm() {
-					MainWindow.restartApplication(null);
+				int result = fileChooser.showOpenDialog(null);
+				if (result != JFileChooser.APPROVE_OPTION) {
+					return;
 				}
 
-				public void onCancel() {
-				}
+				File selectedFile = fileChooser.getSelectedFile();
+				MainWindow.handleFile(selectedFile);
 			});
-
-		});
+			CommonGUI.setMenuItemShortcut(openItem, KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK);
+			fileMenu.add(openItem);
 		
 		
+		
 
 		
-		JMenuItem exit = new JMenuItem(fileMenuItemStrings.get("exit"));
-		exit.addActionListener((ActionEvent e) -> {
-
-			new ConfirmDialog(dialogMsgs.get("exitConfirmation"), new ConfirmationListener() {
-
-				public void onConfirm() {
-					System.exit(0);
-				}
-				public void onCancel() {
-
-				}
+			JMenuItem preferences = new JMenuItem(fileMenuItemStrs.get("preferences"));
+			preferences.addActionListener((ActionEvent e) -> {
+				new SettingsWindow();
 			});
+			CommonGUI.setMenuItemShortcut(preferences, KeyEvent.VK_P, KeyEvent.CTRL_DOWN_MASK);
+			fileMenu.add(preferences);
+		
+		
+		
+		
+			JMenuItem restart = new JMenuItem(fileMenuItemStrs.get("restart"));
+			restart.addActionListener((ActionEvent e) -> {
 
-		});
+				new ConfirmDialog(dialogMsgs.get("restartConfirmation"), new ConfirmationListener() {
+
+					public void onConfirm() {
+						MainWindow.restartApplication(null);
+					}
+
+					public void onCancel() {
+					}
+				});
+
+			});
 		
 		
-		fileMenu.add(restart);
-		fileMenu.add(exit);
+
 		
-		menuBar.add(fileMenu);
+			JMenuItem exit = new JMenuItem(fileMenuItemStrs.get("exit"));
+			exit.addActionListener((ActionEvent e) -> {
+
+				new ConfirmDialog(dialogMsgs.get("exitConfirmation"), new ConfirmationListener() {
+
+					public void onConfirm() {
+						System.exit(0);
+					}
+					public void onCancel() {
+						
+					}
+				});
+
+			});
+		
+		
+			fileMenu.add(restart);
+			fileMenu.add(exit);
+		
+			menuBar.add(fileMenu);
+			
+			
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		{
+			JMenu helpMenu = new JMenu(menuBarStrs.get("help"));
+			
+			
+			
+			JMenuItem updaterOpen = new JMenuItem(helpMenuItemStrs.get("openUpdater"));
+			updaterOpen.addActionListener((ActionEvent ev) -> {
+				new UpdaterWindow();
+			});
+			helpMenu.add(updaterOpen);
+			
+			
+			
+			
+			JMenuItem manualOpen = new JMenuItem(helpMenuItemStrs.get("openManual"));
+			manualOpen.addActionListener((ActionEvent ev) -> {
+				new ManualWindow();
+			});
+			helpMenu.add(manualOpen);
+			
+			
+			menuBar.add(helpMenu);
+		}
+		
 		return menuBar;
 	}
 	
@@ -140,6 +189,12 @@ public class MainGUI {
 	
 	public static void addMenuBarItem(JMenu item) {
 		menuBar.add(item);
+		menuBar.revalidate();
+		menuBar.repaint();
+	}
+	
+	public static void addMenuBarItem(JMenu item, int index) {
+		menuBar.add(item, index);
 		menuBar.revalidate();
 		menuBar.repaint();
 	}

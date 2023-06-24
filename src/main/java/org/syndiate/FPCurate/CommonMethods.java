@@ -158,8 +158,7 @@ public class CommonMethods {
 		}
 		
 		ProcessBuilder processBuilder = !commandLine ? new ProcessBuilder(tempFile.getAbsolutePath(), command)
-//								: new ProcessBuilder(cmdProgram, cFlag, tempFile.getAbsolutePath() + " " + command);
-								: new ProcessBuilder(cmdProgram, cFlag, tempFile.getAbsolutePath(), command);
+								: new ProcessBuilder(cmdProgram, cFlag, tempFile.getAbsolutePath() + " " + command);
 		processBuilder.redirectErrorStream(true);
 		
 		
@@ -281,6 +280,32 @@ public class CommonMethods {
 	    }
 	    return false;
 	}
+	
+	
+	
+	
+	
+	
+	// Returns true or false depending on whether or not the first parameter is a newer version than the second parameter
+	public static boolean compareVersions(String version1, String version2) {
+        String[] version1Parts = version1.replaceAll("v", "").split("\\.");
+        String[] version2Parts = version2.replaceAll("v", "").split("\\.");
+
+        int length = Math.max(version1Parts.length, version2Parts.length);
+        for (int i = 0; i < length; i++) {
+            int v1 = i < version1Parts.length ? Integer.parseInt(version1Parts[i]) : 0;
+            int v2 = i < version2Parts.length ? Integer.parseInt(version2Parts[i]) : 0;
+
+            if (v1 > v2) {
+                return true;
+            } else if (v1 < v2) {
+                return false;
+            }
+        }
+
+        return false;
+    }
+	
 	
 	
 	

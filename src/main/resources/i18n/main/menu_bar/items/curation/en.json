@@ -1,7 +1,16 @@
 { 
 	"openCuration": "Open Curation in Explorer",
 	"openSWF": "Open SWF",
-	"openLogo": "Open Logo in Image Cropper",
 	"delCuration": "Terminate/Delete Curation",
-	"saveCuration": "Save Curation"
+	"saveCuration": "Save Curation",
+	"clearCurationView": "Clear Curation View",
+	"logoSSOptions": "Logo/SS",
+	
+	"openLogo": "Open Saved Logo in Image Cropper",
+	"takeSS": "Take Screenshot",
+	"uploadLogoClipboard": "Upload Logo from Clipboard",
+	"uploadSSClipboard": "Upload Screenshot in Clipboard",
+	"logoClipboardSaved": "Logo from clipboard saved.",
+	"ssClipboardSaved": "Screenshot from clipboard saved.",
+	"noClipboardImage": "No image data found on the clipboard."
 }

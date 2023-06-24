@@ -10,7 +10,8 @@
 	"skipping": "Saltando.",
 	"invalidOption": "Opción inválida ingresada.",
 	"defaultingTo": "Seleccionando por defecto ",
-	"fieldAlreadyPresent": " campo ya presente. Omitiendo prompt.",
+	"fieldAlreadyPresent": " campo ya presente. Se salta la solicitud.",
+	"foundInCuration": " encontrado en la curación. Se salta la solicitud.",
 	"noSS": "No se tomará captura de pantalla.",
 	
 	

@@ -1,5 +1,8 @@
 { 
 	"globalLanguage": "en",
+	"updateCheck": "startup",
+	"hasOpenedAutoFPCurator": "false",
+	
 	"lcDirDefOff": "false",
 	"libraryDefOff": "true",
 	"seriesDefOff": "true",

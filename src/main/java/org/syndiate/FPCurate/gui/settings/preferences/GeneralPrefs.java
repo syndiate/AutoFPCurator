@@ -1,7 +1,6 @@
 package org.syndiate.FPCurate.gui.settings.preferences;
 
 import java.awt.GridLayout;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -11,6 +10,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.syndiate.FPCurate.I18N;
+import org.syndiate.FPCurate.SettingsManager;
 import org.syndiate.FPCurate.gui.common.SettingsGUI;
 import org.syndiate.FPCurate.gui.settings.SettingsWindow;
 
@@ -27,26 +27,22 @@ public class GeneralPrefs extends JPanel {
 		int gridRows = CurationPrefs.getRows();
 		this.setLayout(new GridLayout(gridRows, 2));
 //		this.setLayout(new GridBagLayout());
-	      
-	      
 		
-		Map<String, String> languages = I18N.getStrings("settings/general/languages");
 		Map<String, String> generalMenuStrs = I18N.getStrings("settings/general");
 		
 		
+		
+		
+		
+		
+		
+		
+		// i love you boilerplate yes i do
+		Map<String, String> languages = I18N.getStrings("settings/general/languages");
 		this.add(new JLabel(generalMenuStrs.get("languageDropdown")));
-		
-		
-		final ArrayList<String> languageItems = new ArrayList<>();
-		
-		for (Map.Entry<String, String> entry : languages.entrySet()) {
-			languageItems.add(entry.getValue());
-		}
-		
-		
 		this.add(SettingsGUI.createDropdown
 				(
-						Arrays.stream(languageItems.toArray()).toArray(String[]::new),
+						Arrays.stream(SettingsWindow.settingChoicesArr(languages)).toArray(String[]::new),
 						languages.get(I18N.getLanguage()),
 						e -> {
 							@SuppressWarnings("unchecked")
@@ -66,6 +62,31 @@ public class GeneralPrefs extends JPanel {
 						}
 				)
 		);
+		
+		
+		
+		Map<String, String> updateCheckStrs = I18N.getStrings("settings/general/update_check");
+		this.add(new JLabel(generalMenuStrs.get("updateCheck")));
+		this.add(SettingsGUI.createDropdown
+				(
+						Arrays.stream(SettingsWindow.settingChoicesArr(updateCheckStrs)).toArray(String[]::new),
+						updateCheckStrs.get(SettingsManager.getSetting("updateCheck")),
+						e -> {
+							@SuppressWarnings("unchecked")
+							JComboBox<String> cb = (JComboBox<String>) e.getSource();
+							switch (cb.getSelectedIndex()) {
+								case 0:
+									SettingsWindow.queueSetting("updateCheck", "never");
+									break;
+								case 1:
+									SettingsWindow.queueSetting("updateCheck", "startup");
+									break;
+							}
+							
+						}
+				)
+		);
+						
 		
 		
 		// whitespace below the "real" components so that the "real" components don't take up the whole screen

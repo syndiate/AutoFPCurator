@@ -1,0 +1,11 @@
+{ 
+	"windowTitle": "Updater",
+	"checkingForUpdates": "Checking for updates...",
+	"noUpdates": "No updates available.",
+	"newUpdate": "New update available! Would you like to download it?",
+	"choosePath": "Please select a location to save the update.",
+	"downloadingUpdate": "Downloading update...",
+	"openUpdatePrompt": "Succesfully downloaded the update. Would you like to open it?",
+	"openUpdate": "Opening newly downloaded update...",
+	"openStackTrace": "Open Stack Trace"
+}

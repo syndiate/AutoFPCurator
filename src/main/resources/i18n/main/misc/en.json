@@ -1,5 +1,5 @@
 { 
-	"unsavedMetaYAML": "You have some unsaved changes in meta.yaml. Discard?",
+	"unsavedMetaYAML": "You have some unsaved changes in meta.yaml. Discard? You can save the changes by performing Ctrl+S.",
 	"mainTab": "Main",
 	"terminateCurationConfirm": "Are you sure you want to terminate the curation?",
 	"loading": "Loading..."

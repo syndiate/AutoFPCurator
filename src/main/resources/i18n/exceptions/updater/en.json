@@ -1,0 +1,7 @@
+{ 
+	"githubApiErr": "Could not reach GitHub API. There may be an issue with your Internet connection, or you may have used the updater too many times within the past hour.",
+	"choosePathRetrievalError": "Something went wrong when trying to retrieve the chosen file path.",
+	"downloadFail": "Failed to download the update.",
+	"invalidDir": "The directory you have selected appears to be invalid.",
+	"openUpdateFail": "Failed to open the update. It is saved here: "
+}

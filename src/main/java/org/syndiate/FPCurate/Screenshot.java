@@ -8,8 +8,8 @@ import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.Map;
 
-import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 import org.syndiate.FPCurate.gui.cropper.CropperManager;
 
 import com.sun.jna.Native;
@@ -92,6 +92,7 @@ public class Screenshot {
 		
 		
 		
+		Map<String, String> screenshotExStrs = I18N.getStrings("exceptions/screenshot");
 		// Take a screenshot of the Flash Player projector window
 		BufferedImage screenshot = null;
 		try {
@@ -104,17 +105,18 @@ public class Screenshot {
 		    // Adjust the visible bounds to exclude overlapping elements like the taskbar
 		    Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration());
 		    visibleBounds.y += screenInsets.top;
-		    visibleBounds.height -= (screenInsets.top + screenInsets.bottom);
+//		    visibleBounds.height -= (screenInsets.top + screenInsets.bottom);
 
 		    // Check if the visible bounds have valid dimensions
 		    if (visibleBounds.width > 0 && visibleBounds.height > 0) {
 		        screenshot = new Robot().createScreenCapture(visibleBounds);
 		    } else {
 		        // Handle the case where the visible bounds have invalid dimensions
-		        System.out.println("The window is completely off-screen or has no visible area.");
+		        System.out.println(screenshotExStrs.get("completelyOffScreen"));
 		    }
 		} catch (AWTException e) {
-		    new ErrorDialog(e);
+			System.out.println(screenshotExStrs.get("partiallyOrCompletely"));
+//		    new ErrorDialog(e);
 		}
 
 		return screenshot;

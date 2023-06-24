@@ -3,6 +3,7 @@ package org.syndiate.FPCurate;
 import java.awt.Desktop;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
@@ -48,6 +49,8 @@ public class Curation {
 	private File curFolder;
 	private File swfPath;
 	private String curationId;
+	private boolean curationExists = false;
+	
 	
 	private static final String curationDataDirPrefix = "curation_data/";
 	public static final String[] lcProtocols = {"http"};
@@ -88,6 +91,19 @@ public class Curation {
 		this.curFolder.mkdirs();
 		this.metaYAML = new File(curFolder + "/meta.yaml");
 
+	}
+	
+	
+	public Curation(String uuid) {
+		
+		this.curationId = uuid;
+		this.curFolder = new File(SettingsManager.getSetting("workingCurations") + File.separator + curationId);
+		
+		if (!this.curFolder.exists()) {
+			this.curFolder.mkdirs();
+		}
+		this.metaYAML = new File(curFolder + "/meta.yaml");
+		
 	}
 	
 	
@@ -170,6 +186,40 @@ public class Curation {
 	
 	
 	
+	public void removeMeta(String key) {
+		
+		try {
+			
+			final Yaml yaml = new Yaml();
+			FileReader reader = new FileReader(this.metaYAML);
+			Map<String, Object> meta = yaml.load(reader);
+			
+			
+			if (meta == null) {
+				return;
+			}
+			meta.remove(key);
+			
+
+			FileWriter writer = new FileWriter(this.metaYAML);
+			
+			DumperOptions options = new DumperOptions();
+	        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+	        options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
+	        
+			new Yaml(options).dump(meta, writer);
+
+			writer.close();
+			reader.close();
+			
+			
+		} catch (IOException e) {
+			new ErrorDialog(new IOException(errorStrs.get("metaYamlWrite"), e));
+		}
+		
+	}
+	
+	
 	
 	public Optional<Object> readMeta(String key) {
 		try {
@@ -195,6 +245,10 @@ public class Curation {
 		}
 		return null;
 	}
+	
+	
+	
+	
 
 	
 	
@@ -412,6 +466,54 @@ public class Curation {
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	public void init(File swfPath, boolean shouldCloseCurationView) {
 		
 		
@@ -448,42 +550,54 @@ public class Curation {
 		
 		
 		
+		
+		
 		String launchCommand = "";
-		if (SettingsManager.getSetting("lcDirDefOff").equals("true")) {
+		
+		if (readMeta("Launch Command").orElse(null) == null) {
 			
-			launchCommand = MainGUI.input(curationStrs.get("lcPrompt"), new KeyAdapter() {
-				@Override
-				public void keyPressed(KeyEvent e) {
+			if (SettingsManager.getSetting("lcDirDefOff").equals("true")) {
+			
+				launchCommand = MainGUI.input(curationStrs.get("lcPrompt"), new KeyAdapter() {
+					@Override
+					public void keyPressed(KeyEvent e) {
 
-					if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+						if (e.getKeyCode() != KeyEvent.VK_ENTER) {
+							return;
+						}
+
+						JTextField field = ((JTextField) e.getComponent());
+						String text = field.getText();
+						if (text.isEmpty()) {
+							e.consume();
+							return;
+						}
+						text = CommonMethods.correctURL(text);
+
+						String[] schemes = { "http" };
+						UrlValidator urlValidator = new UrlValidator(schemes);
+
+						if (!urlValidator.isValid(text)) {
+							System.out.println(curationStrs.get("invalidLc"));
+							e.consume();
+							return;
+						}
+
+						field.setText(text);
 						return;
+
 					}
-
-					JTextField field = ((JTextField) e.getComponent());
-					String text = field.getText();
-					if (text.isEmpty()) {
-						e.consume();
-						return;
-					}
-					text = CommonMethods.correctURL(text);
-
-					String[] schemes = { "http" };
-					UrlValidator urlValidator = new UrlValidator(schemes);
-
-					if (!urlValidator.isValid(text)) {
-						System.out.println(curationStrs.get("invalidLc"));
-						e.consume();
-						return;
-					}
-
-					field.setText(text);
-					return;
-
-				}
-			});
+				});
+			
+			} else {
+				launchCommand = SettingsManager.getSetting("lcDirDefault") + this.swfPath.getName();
+			}
+			writeMeta("Launch Command", launchCommand);
+			
 			
 		} else {
-			launchCommand = SettingsManager.getSetting("lcDirDefault") + this.swfPath.getName();
+			launchCommand = readMeta("Launch Command").get().toString();
+			System.out.println("Launch Command" + curationStrs.get("fieldAlreadyPresent"));
 		}
 		
 		
@@ -492,18 +606,28 @@ public class Curation {
 		
 		
 		File lcDir = new File(this.curFolder + "/content/" + launchCommand.replaceAll("//|http|https|:|\\/\\/|/g", ""));
+		if (lcDir.exists()) {
+			this.curationExists = true;
+		}
 		new File(lcDir.getParent()).mkdirs();
 		
 		
 		
 		
-		try {
-			System.out.println(curationStrs.get("moveSWF"));
-			Files.move(Paths.get(this.swfPath.toURI()), Paths.get(lcDir.toURI()));
-			this.swfPath = lcDir;
-		} catch (IOException e1) {
-			new ErrorDialog(new IOException(errorStrs.get("moveSWF"), e1));
+		if (!curationExists) {
+			
+			try {
+				System.out.println(curationStrs.get("moveSWF"));
+				Files.move(Paths.get(this.swfPath.toURI()), Paths.get(lcDir.toURI()));
+//				this.swfPath = lcDir;
+			} catch (IOException e1) {
+				new ErrorDialog(new IOException(errorStrs.get("moveSWF"), e1));
+			}
+			
 		}
+		this.swfPath = lcDir;
+		
+		
 		
 		
 		try {
@@ -516,24 +640,32 @@ public class Curation {
 		
 		
 		
-		String logoSS = MainGUI.input(curationStrs.get("logoPrompt"), requireInput);
-		switch (logoSS.toLowerCase()) {
+		
+		File logoPath = getCurImage("logo");
+		if (!logoPath.exists()) {
+			
+			String logoSS = MainGUI.input(curationStrs.get("logoPrompt"), requireInput);
+			switch (logoSS.toLowerCase()) {
 			case "y": {
-				
+
 				
 				if (!CommonMethods.getOperatingSystem().equals("Windows")) {
 					System.out.println(commonStrs.get("unsupportedOS"));
 					break;
 				}
+				
 				System.out.println(curationStrs.get("openCropper"));
-				new CropperManager(Screenshot.takeScreenshot(), new File(this.curFolder.getAbsolutePath() + "/logo.png"));
+				new CropperManager(Screenshot.takeScreenshot(), logoPath);
 				break;
-				
-				
+
 			}
 			default:
 				System.out.println(curationStrs.get("noSS"));
 				break;
+			}
+			
+		} else {
+			System.out.println("Logo" + curationStrs.get("foundInCuration"));
 		}
 		
 		
@@ -546,17 +678,32 @@ public class Curation {
 		
 		
 		
-		String title = MainGUI.input(curationStrs.get("titlePrompt"), requireInput);
-		System.out.println(curationStrs.get("checkingDupes"));
-		if (Curation.checkPotentialDupes(title)) {
-			 return;
+		if (readMeta("Title").orElse(null) == null) {
+			
+			String title = MainGUI.input(curationStrs.get("titlePrompt"), requireInput);
+			System.out.println(curationStrs.get("checkingDupes"));
+			if (Curation.checkPotentialDupes(title)) {
+				 return;
+			}
+			writeMeta("Title", title);
+			
+		} else {
+			System.out.println("Title" + curationStrs.get("fieldAlreadyPresent"));
+		}
+
+		
+		
+		if (readMeta("Alternate Titles").orElse(null) == null) {
+			writeMeta("Alternate Titles", MainGUI.input(curationStrs.get("alternateTitlePrompt"), null));
+		} else {
+			System.out.println("Alternate Titles" + curationStrs.get("fieldAlreadyPresent"));
 		}
 		
 		
 		
 		
-		writeMeta("Title", title);
-		writeMeta("Alternate Titles", MainGUI.input(curationStrs.get("alternateTitlePrompt"), null));
+		
+		
 		
 		
 		
@@ -800,29 +947,41 @@ public class Curation {
 		
 		
 		
+		Object tagMeta = readMeta("Tags").orElse(null);
+		String tags = "";
+		if (tagMeta == null) {
+			
+			tags = SettingsManager.getSetting("tagsDefOff").equals("true") ? CommonMethods.correctSeparators(
+					MainGUI.input(curationStrs.get("tagPrompt"), requireInput), ";"
+					)
+					: SettingsManager.getSetting("tagsDefault");
 		
-		
-		String tags = SettingsManager.getSetting("tagsDefOff").equals("true") ? CommonMethods.correctSeparators(
-				MainGUI.input(curationStrs.get("tagPrompt"), requireInput), ";"
-			)
-			: SettingsManager.getSetting("tagsDefault");
-		
-		writeMeta("Tags", tags);
-		
-		
-		
-		
-		
-
-		System.out.println(curationStrs.get("generatingTagCats"));
-		String tagCats = Curation.generateTagCats(tags);
-
-		if (tagCats.equals("")) {
-			System.out.println(curationStrs.get("noTagCats"));
-			writeMeta("Tag Categories", MainGUI.input(curationStrs.get("tagCatPrompt"), requireInput));
+			writeMeta("Tags", tags);
+			
 		} else {
-			writeMeta("Tag Categories", tagCats);
+			tags = tagMeta.toString();
+			System.out.println("Tags" + curationStrs.get("fieldAlreadyPresent"));
 		}
+		
+		
+		
+		
+		if (readMeta("Tag Categories").orElse(null) == null) {
+			
+			System.out.println(curationStrs.get("generatingTagCats"));
+			String tagCats = Curation.generateTagCats(tags);
+
+			if (tagCats.equals("")) {
+				System.out.println(curationStrs.get("noTagCats"));
+				writeMeta("Tag Categories", MainGUI.input(curationStrs.get("tagCatPrompt"), requireInput));
+			} else {
+				writeMeta("Tag Categories", tagCats);
+			}
+			
+		} else {
+			System.out.println("Tag Categories" + curationStrs.get("fieldAlreadyPresent"));
+		}
+		
 		
 		
 		
@@ -953,6 +1112,7 @@ public class Curation {
 		
 		
 		writeMeta("Application Path", "FPSoftware\\Flash\\flashplayer_32_sa.exe");
+		removeMeta("Launch Command");
 		writeMeta("Launch Command", launchCommand);
 		
 		
@@ -963,7 +1123,7 @@ public class Curation {
 		
 		if (readMeta("Game Notes").orElse(null) == null) {
 			
-			String gameNotes = SettingsManager.getSetting("gameNotesDefOff").equals("true") ? MainGUI.input(curationStrs.get("gameNotesPrompt"), null) : SettingsManager.getSetting("gameNotesDefault");
+			String gameNotes = SettingsManager.getSetting("gameNotesDefOff").equals("true") ? MainGUI.input(curationStrs.get("gameNotesPrompt"), null) : 				SettingsManager.getSetting("gameNotesDefault");
 			writeMeta("Game Notes", gameNotes);
 			
 		} else {
@@ -996,35 +1156,40 @@ public class Curation {
 		
 		
 		
-		String ssConfirm = SettingsManager.getSetting("ssDefOff").equals("true") ? 
-				MainGUI.input(curationStrs.get("ssPrompt"), null)
-				: SettingsManager.getSetting("ssDefault");
-		
-		
-		
-		
-		switch (ssConfirm.toLowerCase()) {
-		
-			case "yes":
-			case "y":
-			case "": {
-				
-				if (!CommonMethods.getOperatingSystem().equals("Windows")) {
-					System.out.println(commonStrs.get("unsupportedOS"));
+		if (!getCurImage("ss").exists()) {
+			
+
+			String ssConfirm = SettingsManager.getSetting("ssDefOff").equals("true")
+					? MainGUI.input(curationStrs.get("ssPrompt"), null)
+					: SettingsManager.getSetting("ssDefault");
+			
+
+			switch (ssConfirm.toLowerCase()) {
+
+				case "yes":
+				case "y":
+				case "": {
+					
+					if (!CommonMethods.getOperatingSystem().equals("Windows")) {
+						System.out.println(commonStrs.get("unsupportedOS"));
+						break;
+					}
+					try {
+						writeCurImage(Screenshot.takeScreenshot(), "ss");
+					} catch (IOException e) {
+						new ErrorDialog(e);
+					}
 					break;
+
 				}
-				try {
-					ImageIO.write(Screenshot.takeScreenshot(), "png", new File(this.curFolder.getAbsolutePath() + "/ss.png"));
-				} catch (IOException e) {
-					new ErrorDialog(e);
+				default: {
+					System.out.println(curationStrs.get("skipSS"));
 				}
-				break;
-				
+
 			}
-			default: {
-				System.out.println(curationStrs.get("skipSS"));
-			}
-				
+			
+		} else {
+			System.out.println("Screenshot" + curationStrs.get("foundInCuration"));
 		}
 		
 		
@@ -1043,7 +1208,7 @@ public class Curation {
 		String out = SettingsManager.getSetting("zippedCurations") + "/" + this.curationId + ".7z";
 		String exeString = "";
 		String args = "a \"" + out + "\" \"" + curFolder.getAbsolutePath() + "\"/*";
-		
+		System.out.println(args);
 		
 		switch (CommonMethods.getOperatingSystem()) {
 			 case "Windows":
@@ -1091,7 +1256,13 @@ public class Curation {
 	
 	
 	
+	public void writeCurImage(BufferedImage image, String fileName) throws IOException {
+		ImageIO.write(image, "png", new File(this.getCurFolder().getAbsolutePath() + "/" + fileName + ".png"));
+	}
 	
+	public File getCurImage(String fileName) {
+		return new File(this.getCurFolder().getAbsolutePath() + "/" + fileName + ".png");
+	}
 	
 	
 	

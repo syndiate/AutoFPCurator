@@ -1,0 +1,11 @@
+{
+	"windowTitle": "Actualizador",
+	"checkingForUpdates": "Buscando actualizaciones...",
+	"noUpdates": "No hay actualizaciones disponibles.",
+	"newUpdate": "¡Nueva actualización disponible! ¿Desea descargarla?",
+	"choosePath": "Por favor, seleccione una ubicación para guardar la actualización.",
+	"downloadingUpdate": "Descargando actualización...",
+	"openUpdatePrompt": "Se ha descargado la actualización correctamente. ¿Desea abrirlo?",
+	"openUpdate": "Abriendo la actualización recién descargada...",
+	"openStackTrace": "Abrir seguimiento de pila"
+}

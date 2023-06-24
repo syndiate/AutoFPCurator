@@ -90,6 +90,7 @@ public class SettingsGUI {
 		JComboBox<String> dropdown = new JComboBox<>(dropdownItems);
 		dropdown.setSelectedItem(selectedItem);
 		dropdown.addItemListener(listener);
+		dropdown.setFocusable(false);
 		return dropdown;
 		
 		
@@ -102,6 +103,7 @@ public class SettingsGUI {
 		box.putClientProperty("settingsId", settingsId);
 		box.setSelected(Boolean.parseBoolean(SettingsManager.getSetting(settingsId)));
 		box.addItemListener((ItemEvent e) -> SettingsWindow.queueSetting(settingsId, box.isSelected()));
+		box.setFocusable(false);
 		return box;
 		
 		

@@ -289,11 +289,13 @@ public class CurationPrefs extends JPanel {
 				correspondingField.setEnabled(!box.isSelected());
 			});
 			
+			field.getDocument().putProperty("checkBox", box);
+			
 		} else {
 			field = SettingsGUI.createTextField(id, listener);
+			field.getDocument().putProperty("checkBox", box);
 			listener.update(field.getDocument());
 		}
-		field.getDocument().putProperty("checkBox", box);
 		
 		
 		

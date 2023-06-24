@@ -1,3 +1,4 @@
 { 
-	"languageDropdown": "Language:"
+	"languageDropdown": "Language:",
+	"updateCheck": "Check for updates when:"
 }

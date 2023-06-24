@@ -1,5 +1,5 @@
 { 
-	"unsavedMetaYAML": "Tienes cambios sin guardar en meta.yaml. ¿Descartarlos?",
+	"unsavedMetaYAML": "Tienes cambios sin guardar en meta.yaml. ¿Descartarlos? Puedes guardar los cambios realizando Ctrl+S.",
 	"mainTab": "Principal",
 	"terminateCurationConfirm": "¿Estás seguro de que deseas terminar la curación?",
 	"loading": "Cargando..."

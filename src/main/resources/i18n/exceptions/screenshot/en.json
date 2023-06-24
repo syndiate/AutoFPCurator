@@ -1,0 +1,4 @@
+{ 
+	"completelyOffScreen": "The window is completely off-screen or has no visible area.",
+	"partiallyOrCompletely": "The window is either partially or completely off-screen or has **no visible** area."
+}

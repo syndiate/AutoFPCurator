@@ -107,6 +107,11 @@ class CommonMethodsTest {
 			fail("Zip file was not created.");
 		}
 	}
+	
+	@Test
+	void OS() {
+		System.out.println(CommonMethods.getOperatingSystem());
+	}
 
 
 }
