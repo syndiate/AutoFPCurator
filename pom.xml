@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.syndiate</groupId>
 	<artifactId>FPCurate</artifactId>
-	<version>1.2</version>
+	<version>1.2.1</version>
 	<name>AutoFPCurator</name>
 	<description>A tool for automatically generating/zipping curations for Flashpoint.</description>
 	<properties>

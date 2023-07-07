@@ -9,7 +9,6 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -28,7 +27,6 @@ import javax.swing.JPanel;
 
 import org.syndiate.FPCurate.CommonMethods;
 import org.syndiate.FPCurate.I18N;
-import org.syndiate.FPCurate.gui.common.dialog.ErrorDialog;
 import org.syndiate.FPCurate.gui.common.dialog.GenericDialog;
 
 //https://github.com/lewiswhitaker1/ImageCropToSquare/blob/main/src/me/lewis/cropper/ImageCropper.java
@@ -43,7 +41,7 @@ public class ImageCropper extends JPanel implements MouseListener, MouseMotionLi
 	
 	private static final long serialVersionUID = 4951011590900776611L;
 	private BufferedImage image;
-	private JButton saveButton, rotateButton;
+//	private JButton saveButton, rotateButton;
 	
 	private Rectangle cropBox;
 	private Point startPoint, draggingPoint;
@@ -59,6 +57,7 @@ public class ImageCropper extends JPanel implements MouseListener, MouseMotionLi
 	private final Map<String, Rectangle> resizerHandles = new HashMap<>();
 	private final Map<String, MouseMotionListener> resizerHandleListeners = new HashMap<>();
 	
+	@SuppressWarnings("unused")
 	private final Map<String, String> cropperStrs = I18N.getStrings("cropper");
 	private final Map<String, String> cropperExStrs = I18N.getStrings("exceptions/cropper");
 	
@@ -85,25 +84,11 @@ public class ImageCropper extends JPanel implements MouseListener, MouseMotionLi
 		addMouseMotionListener(this);
 		
 		
-
+/*
 		rotateButton = new JButton(cropperStrs.get("rotateBtn"));
 		rotateButton.addActionListener((ActionEvent e) -> {
 
-			BufferedImage rotatedImage = rotateImage(image, 90);
-			ImageCropper cropper = new ImageCropper(rotatedImage, saveLocation);
-
-			Window[] windows = Window.getWindows();
-			for (Window window : windows) {
-				if (!(window instanceof JFrame)) {
-					continue;
-				}
-				JFrame frame = (JFrame) window;
-				if (frame.getName().equalsIgnoreCase("cropper")) {
-					frame.setContentPane(cropper);
-					frame.pack();
-					repaint();
-				}
-			}
+			
 		});
 		
 		
@@ -111,9 +96,9 @@ public class ImageCropper extends JPanel implements MouseListener, MouseMotionLi
 		saveButton.addActionListener((ActionEvent e) -> saveImage());
 
 		buttonDesign(saveButton);
-		buttonDesign(rotateButton);
-		add(saveButton);
-		add(rotateButton);
+		buttonDesign(rotateButton);*/
+//		add(saveButton);
+//		add(rotateButton);
 		
 	}
 	
@@ -148,11 +133,48 @@ public class ImageCropper extends JPanel implements MouseListener, MouseMotionLi
 	}
 	
 	
+	public BufferedImage rotateImage(double angle) {
+		return rotateImage(image, angle);
+	}
+	
+	
+	
+	
+	
+	public void rotateImageGUI() {
+		BufferedImage rotatedImage = rotateImage(image, 90);
+		ImageCropper cropper = new ImageCropper(rotatedImage, saveLocation);
+
+		Window[] windows = Window.getWindows();
+		for (Window window : windows) {
+			if (!(window instanceof JFrame)) {
+				continue;
+			}
+			JFrame frame = (JFrame) window;
+			if (frame.getName().equalsIgnoreCase("cropper")) {
+				frame.setContentPane(cropper);
+				frame.pack();
+				repaint();
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	public void saveImage() {
 
 		if (cropBox == null) {
-			new ErrorDialog(new Exception(cropperExStrs.get("noCropBox")));
+			new GenericDialog(cropperExStrs.get("noCropBox"));
 			return;
 		}
 		

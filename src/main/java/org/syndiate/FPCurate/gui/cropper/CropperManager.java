@@ -1,14 +1,22 @@
 package org.syndiate.FPCurate.gui.cropper;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 
+import org.syndiate.FPCurate.I18N;
 import org.syndiate.FPCurate.gui.common.CommonGUI;
 
 
@@ -17,6 +25,13 @@ public class CropperManager {
 	
 	
 	private static JFrame cropperFrame = null;
+	
+	
+	private static final Map<String, String> commonStrs = I18N.getStrings("common");
+	private static final Map<String, String> cropperStrs = I18N.getStrings("cropper");
+	
+	
+	
 	
     public static void main(String[] args) {
     	try {
@@ -41,18 +56,61 @@ public class CropperManager {
     
     
     public static void createGUI(BufferedImage image, File saveLocation) {
-    	ImageCropper cropper = new ImageCropper(image, saveLocation);
+    	
+    	
+    	AtomicReference<ImageCropper> cropper = new AtomicReference<>(new ImageCropper(image, saveLocation));
+    	
         cropperFrame = new JFrame("Cropper");
         cropperFrame.setName("Cropper");
         cropperFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        cropperFrame.setContentPane(cropper);
+        cropperFrame.setContentPane(cropper.get());
         cropperFrame.pack();
-        cropperFrame.setVisible(true);
         cropperFrame.toFront();
         cropperFrame.requestFocus();
         cropperFrame.setResizable(false);
+        
+        
+        
+        {
+        	
+			JMenuBar bar = new JMenuBar();
+			bar.setOpaque(true);
+			bar.setBackground(Color.WHITE);
+			JMenu utils = new JMenu(commonStrs.get("file"));
+
+			
+			
+			JMenuItem rotateBtn = new JMenuItem(cropperStrs.get("rotateBtn"));
+			rotateBtn.addActionListener((ActionEvent e) -> {
+				
+				BufferedImage rotatedImage = cropper.get().rotateImage(90);
+				cropper.set(new ImageCropper(rotatedImage, saveLocation));
+				cropperFrame.setContentPane(cropper.get());
+				cropperFrame.pack();
+				
+			});
+
+			
+			JMenuItem saveBtn = new JMenuItem(cropperStrs.get("saveBtn"));
+			saveBtn.addActionListener((ActionEvent e) -> cropper.get().saveImage());
+			
+			
+			utils.add(rotateBtn);
+			utils.add(saveBtn);
+			bar.add(utils);
+			cropperFrame.setJMenuBar(bar);
+			
+		}
+        
+        
+        cropperFrame.setVisible(true);
         CommonGUI.setIconImage(cropperFrame, "logo.png");
+		
+        
     }
+    
+    
+    
     
     public static void closeGUI() {
     	if (cropperFrame == null) {
@@ -65,6 +123,7 @@ public class CropperManager {
     
     
 
+    
 
     public static BufferedImage openImage(File file) throws IOException {
         BufferedImage img = ImageIO.read(file);

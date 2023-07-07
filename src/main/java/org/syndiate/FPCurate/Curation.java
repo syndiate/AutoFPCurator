@@ -4,15 +4,18 @@ import java.awt.Desktop;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,6 +41,7 @@ import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 
 
@@ -104,35 +108,6 @@ public class Curation {
 		}
 		this.metaYAML = new File(curFolder + "/meta.yaml");
 		
-	}
-	
-	
-	
-	// support for folders with swf files inside them
-	public Curation(File folder) {
-
-		if (!folder.isDirectory()) {
-			return;
-		}
-
-		Path dir = folder.toPath();
-		try {
-
-			// iterate through all swf files in the folder
-			Files.walk(dir).forEach(path -> {
-				File curFile = path.toFile();
-				if (!CommonMethods.getFileExtension(curFile).equals("swf")) {
-					return;
-				}
-				new Curation().init(curFile, false);
-			});
-			// finish operation
-			MainWindow.loadWelcomeScreen();
-
-		} catch (IOException e) {
-			new ErrorDialog(e);
-		}
-
 	}
 	
 	
@@ -378,7 +353,7 @@ public class Curation {
         	case "more": {
         		
         		
-        		String curationData = Jsoup.parse(FPData.getCurationData(UUID)).selectFirst("pre").text();
+        		String curationData = Jsoup.parse(FPData.getCurationData(UUID)).selectFirst("pre").outerHtml();
         		System.out.println(curationStrs.get("dupeMetadata"));
         		System.out.println(curationData);
         		
@@ -518,7 +493,6 @@ public class Curation {
 		
 		
 		this.swfPath = swfPath;
-		
 		
 		// set system.out.println to this function
 		PrintStream customOut = new PrintStream(new OutputStream() {
@@ -1149,7 +1123,8 @@ public class Curation {
 
 		writeMeta("Curation Notes", "");
 		writeMeta("Mount Parameters", "");
-		writeMeta("Additional Applications", "{}");
+//		writeMeta("Additional Applications", "{}");
+		writeMeta("Additional Applications", new Object());
 		
 		
 		
@@ -1207,8 +1182,7 @@ public class Curation {
 		
 		String out = SettingsManager.getSetting("zippedCurations") + "/" + this.curationId + ".7z";
 		String exeString = "";
-		String args = "a \"" + out + "\" \"" + curFolder.getAbsolutePath() + "\"/*";
-		System.out.println(args);
+		String args = "a \"" + out + "\" \"" + curFolder.getParentFile().getAbsolutePath() + "\"/*";
 		
 		switch (CommonMethods.getOperatingSystem()) {
 			 case "Windows":

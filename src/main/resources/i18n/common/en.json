@@ -1,5 +1,6 @@
 { 
 	"unsupportedOS": "You are using an unsupported OS. Please zip the curation yourself.",
 	"yes": "Yes",
-	"no": "No"
+	"no": "No",
+	"file": "File"
 }

@@ -51,6 +51,7 @@ public class MainGUI {
 	public static JMenuBar initMenuBar() {
 		
 
+		Map<String, String> commonStrs = I18N.getStrings("common");
 		Map<String, String> menuBarStrs = I18N.getStrings("main/menu_bar");
 		Map<String, String> fileMenuItemStrs = I18N.getStrings("main/menu_bar/items/file");
 		Map<String, String> helpMenuItemStrs = I18N.getStrings("main/menu_bar/items/help");
@@ -71,7 +72,7 @@ public class MainGUI {
 		
 		
 		{
-			JMenu fileMenu = new JMenu(menuBarStrs.get("file"));
+			JMenu fileMenu = new JMenu(commonStrs.get("file"));
 
 		
 			JMenuItem openItem = new JMenuItem(fileMenuItemStrs.get("open"));

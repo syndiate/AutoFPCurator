@@ -22,6 +22,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
@@ -406,6 +407,18 @@ public class MainWindow {
 			
 			
 			
+			JMenuItem saveCuration = new JMenuItem(curationItems.get("saveCuration"));
+			saveCuration.addActionListener((ActionEvent e) -> {
+				MainWindow.loadWelcomeScreen();
+			});
+			curationMenu.add(saveCuration);
+			
+			
+			
+			
+			
+			
+			
 			JMenuItem clearCurationView = new JMenuItem(curationItems.get("clearCurationView"));
 			clearCurationView.addActionListener((ActionEvent ev) -> {
 				
@@ -565,38 +578,58 @@ public class MainWindow {
 	    frmAPCurator.repaint();
 	    
 	    
+	    
 	    SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
 		    @Override
 		    protected Void doInBackground() {
 		    	
 		    	
-		    	
-		    	if (swfFile.isDirectory()) {
-
-		    		
-		    		String dirName = swfFile.getAbsolutePath();
-		    		if (new File(dirName + File.separator + "meta.yaml").exists()) {
-		    	        	
-		    			String curationUUID = Paths.get(dirName).getFileName().toString();
-		    	        if (curationUUID.endsWith("/")) {
-		    	        	curationUUID = curationUUID.substring(0, curationUUID.length() - 1);
-		    	        }
-		    	            
-		    	        mainCuration = new Curation(curationUUID);
-		    	        mainCuration.init(swfFile, true);
-		    	        return null;
-		    	        
-		    	    }
-		    		new Curation(swfFile);
-		    		
-		    		
-		    	} else {
+		    	if (!swfFile.isDirectory()) {
 		    		mainCuration = new Curation();
-		    		mainCuration.init(swfFile, true);
+			    	mainCuration.init(swfFile, true);
+			    	return null;
 		    	}
-		        return null;
+
+		    	
+				String dirName = swfFile.getAbsolutePath();
+				if (new File(dirName + File.separator + "meta.yaml").exists()) {
+
+					String curationUUID = Paths.get(dirName).getFileName().toString();
+					if (curationUUID.endsWith("/")) {
+						curationUUID = curationUUID.substring(0, curationUUID.length() - 1);
+					}
+
+					mainCuration = new Curation(curationUUID);
+					mainCuration.init(swfFile, true);
+					return null;
+
+				}
+				
+				
+				
+//				MainWindow.inSwfFolder = true;
+				try {
+
+					// iterate through all swf files in the folder
+					Files.walk(swfFile.toPath()).forEach(path -> {
+						File curFile = path.toFile();
+						if (!CommonMethods.getFileExtension(curFile).equals("swf")) {
+							return;
+						}
+						mainCuration = new Curation();
+						mainCuration.init(curFile, false);
+					});
+					// finish operation
+					MainWindow.loadWelcomeScreen();
+
+				} catch (IOException e) {
+					new ErrorDialog(e);
+				}
+				return null;
 		        
-		        
+				
+				
+				
 		        
 		    }
 
@@ -837,6 +870,9 @@ public class MainWindow {
 	
 	
 	
+	
+	
+
 	
 	
 	
